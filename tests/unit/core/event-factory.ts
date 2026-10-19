@@ -6,6 +6,8 @@ let nextId = 0;
 export interface EventOverrides {
   eventType: AgentEventType;
   eventId?: string;
+  eventIdStability?: AgentEvent["eventIdStability"];
+  dedupeKey?: string;
   sequence?: number;
   adapterId?: string;
   sessionId?: string;
@@ -31,7 +33,7 @@ export function makeEvent(overrides: EventOverrides): AgentEvent {
   const event: AgentEvent = {
     schemaVersion: 1,
     eventId: overrides.eventId ?? `event-${nextId}`,
-    eventIdStability: "source",
+    eventIdStability: overrides.eventIdStability ?? "source",
     eventType: overrides.eventType,
     source: {
       adapterId: overrides.adapterId ?? "adapter-a",
@@ -45,6 +47,9 @@ export function makeEvent(overrides: EventOverrides): AgentEvent {
     confidence: overrides.confidence ?? "authoritative",
   };
 
+  if (overrides.dedupeKey !== undefined) {
+    event.dedupeKey = overrides.dedupeKey;
+  }
   if (overrides.sequence !== undefined) {
     event.sequence = overrides.sequence;
   }
