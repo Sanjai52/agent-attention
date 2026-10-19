@@ -21,3 +21,6 @@ Thumbs.db
 
 # Spike artifacts (throwaway per PRD M0)
 spikes/**/out/
+
+# Agent workflow scratch (SDD ledger, briefs, review packages)
+.superpowers/

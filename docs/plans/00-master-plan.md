@@ -32,17 +32,30 @@ Copied from PRD; every task inherits these.
 
 ## Phase Map
 
-| Phase | Plan file | PRD milestone | Exit gate |
-|---|---|---|---|
-| 0 — Feasibility spikes | `01-phase-0-feasibility-spikes.md` | M0 | D-01/D-03/D-04 decided, Q-05/Q-06/Q-07 answered, host-signal matrix written, schedule re-baselined |
-| 1 — Contract & core | `02-phase-1-contract-and-core.md` | M1 | All PRD §19.1 unit areas pass; synthetic fixture streams produce correct states without duplicate processing |
-| 2 — Host & providers | `03-phase-2-host-and-providers.md` | M2 | Providers fail independently; hostile-name tests pass; crash/restart/single-instance tests pass |
-| 3 — First adapter | `04-phase-3-first-adapter.md` | M3 | Adapter detects its declared events on recorded fixtures and live smoke; capability declaration matches measured behavior |
-| 4 — Policy, CLI, history | `05-phase-4-policy-cli-history.md` | M4 | F4–F15 acceptance criteria pass for supported capabilities; dogfooding starts |
-| 5 — Second adapter | `06-phase-5-second-adapter.md` | M5 | Second adapter reuses the core with no core changes beyond contract-level fixes |
-| 6 — Hardening & release | `07-phase-6-hardening-release.md` | M6 | PRD §21.1 Definition of Done satisfied on a clean Windows profile |
+| Phase | Branch | Plan file | PRD milestone | Exit gate |
+|---|---|---|---|---|
+| 0 — Feasibility spikes | `phase-0-feasibility-spikes` | `01-phase-0-feasibility-spikes.md` | M0 | D-01/D-03/D-04 decided, Q-05/Q-06/Q-07 answered, host-signal matrix written, schedule re-baselined |
+| 1 — Contract & core | `phase-1-contract-and-core` | `02-phase-1-contract-and-core.md` | M1 | All PRD §19.1 unit areas pass; synthetic fixture streams produce correct states without duplicate processing |
+| 2 — Host & providers | `phase-2-host-and-providers` | `03-phase-2-host-and-providers.md` | M2 | Providers fail independently; hostile-name tests pass; crash/restart/single-instance tests pass |
+| 3 — First adapter | `phase-3-first-adapter` | `04-phase-3-first-adapter.md` | M3 | Adapter detects its declared events on recorded fixtures and live smoke; capability declaration matches measured behavior |
+| 4 — Policy, CLI, history | `phase-4-policy-cli-history` | `05-phase-4-policy-cli-history.md` | M4 | F4–F15 acceptance criteria pass for supported capabilities; dogfooding starts |
+| 5 — Second adapter | `phase-5-second-adapter` | `06-phase-5-second-adapter.md` | M5 | Second adapter reuses the core with no core changes beyond contract-level fixes |
+| 6 — Hardening & release | `phase-6-hardening-release` | `07-phase-6-hardening-release.md` | M6 | PRD §21.1 Definition of Done satisfied on a clean Windows profile |
 
 Phase 0 must finish before Phase 1 (the pipeline's shape depends on S2's process-model outcome). Phases 1→2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
+
+## Branch, PR, and Merge Workflow
+
+This is the binding delivery process for every phase.
+
+1. **One phase per branch.** Cut the branch from an up-to-date `main` only after the previous phase has been merged. Never start a phase on `main`.
+2. **Branch names identify the phase:** `phase-<n>-<kebab-phase-name>` (exact names in the Phase Map above). No `feat/`, `feature/`, ticket numbers, personal names, or vague names — the branch name alone must say which phase it delivers.
+3. **Combined phases.** If two phases must run concurrently (e.g., 4 and 5), they share one branch named for both: `phase-4-5-<combined-kebab-name>`. Never run two parallel branches whose work will conflict at merge time.
+4. **All phase work lands on the branch:** implementation, tests, fixtures, and the phase's docs. `main` receives only completed-phase merges and process docs (like this one).
+5. **Phase completion = end-to-end verification on the branch.** Every task reviewed and complete, then `npm run ci` plus the phase's exit criteria from its plan file run on the branch. A phase with failing tests is not ready for a PR.
+6. **Raise the PR:** push the branch, then `gh pr create` with title `phase <n>: <phase name>` and a body containing scope, task list, test/verification evidence, and any rulings or deferred items. Review every commit included in the PR before merging.
+7. **Merge with a merge commit** (preserves task-level history): `gh pr merge <n> --merge --delete-branch`. Never force-push, never squash away task history, never merge with red CI.
+8. **Then continue:** `git checkout main && git pull`, cut the next phase branch, and repeat. Do not continue work on a merged branch.
 
 ## Decision Gates
 
