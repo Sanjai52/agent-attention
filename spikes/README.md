@@ -61,11 +61,14 @@ not substitute for it. In general:
   `spikes/**/out/`, which is gitignored. Do not commit them; cite the path and a
   verbatim excerpt in the result record instead.
 - Every record states date, Windows build, tool/host versions, the exact command
-  or script path, a raw output excerpt, a conclusion, and exactly one tag:
-  `[Verified]`, `[Assumption]`, or `[Rejected]`.
-- A matrix cell may leave `TBD` only with `[Verified]` evidence: an official
+  or script path (for a doc-only record, the documentation URL and section), a
+  raw output excerpt (for doc-only, a verbatim quoted excerpt), a conclusion, and
+  exactly one tag: `[Verified]`, `[Assumption]`, or `[Rejected]`.
+- A matrix cell clears `TBD` with `[Verified]` evidence: an official
   documentation URL with access date, or a capture path with a line reference.
-  Community examples are `[Assumption]` and do not score.
+  Documentation-only evidence is valid; for example, `Stability` can only be
+  established from docs. Community examples or undocumented claims are
+  `[Assumption]` and do not score.
 - Record negative results (a signal that did **not** fire where it should not)
   as evidence, not as a footnote. Deleted or abandoned routes stay in the log as
   `[Rejected]`.

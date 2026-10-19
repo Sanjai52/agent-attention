@@ -8,6 +8,7 @@ Codex, and Gemini CLI, and the evidence behind D-01.
 - Matrix: [`../host-signal-matrix.md`](../host-signal-matrix.md)
 - Spike workspace: [`../../spikes/s1-host-signals/README.md`](../../spikes/s1-host-signals/README.md)
 - Raw captures: `spikes/s1-host-signals/out/<host>/*.jsonl` (gitignored)
+- Official docs: URL, access date, and section are recorded in each doc-only record
 
 ## Evidence record format
 
@@ -27,21 +28,30 @@ Every experiment uses this record, including negative tests:
 - **ID:** `S1-01`, `S1-02`, … sequential in the order recorded; never renumber.
 - **Date / versions:** `YYYY-MM-DD`; the Windows build reported by `winver` or
   `[System.Environment]::OSVersion.Version`; host CLI version; Node version if a
-  probe used it.
-- **Method:** the exact command line or script path, with arguments and working
-  directory, enough to rerun the experiment. A README link alone is not enough.
-- **Raw observation:** a verbatim excerpt, not a paraphrase. Cite the capture
-  path and line range (`out/opencode/permission.jsonl:12-18`). Captures are
-  gitignored, so the excerpt is the durable evidence. Redact tokens and
-  credentials.
+  probe used it. For a doc-only record, give the access date and write
+  `n/a (doc-only)` for the Windows build and tool versions.
+- **Method:** for a capture, the exact command line or script path, with
+  arguments and working directory, enough to rerun the experiment. For a
+  doc-only record, the official documentation URL and the section heading relied
+  on. A README link alone is not enough.
+- **Raw observation:** a verbatim excerpt, not a paraphrase. For a capture, quote
+  the output and cite the capture path and line range
+  (`out/opencode/permission.jsonl:12-18`); captures are gitignored, so the
+  excerpt is the durable evidence. For a doc-only record, quote the relied-on
+  documentation text verbatim and name its section. Redact tokens, usernames,
+  and credentials.
 - **Conclusion:** answer the question and state any limit on the conclusion.
-  A signal is not authoritative unless a negative test shows it does not fire for
-  ordinary progress (RF-S1).
+  For a runtime signal, record the RF-S1 negative test that shows ordinary
+  progress does not fire it. Documentation-based criteria such as `Stability`
+  are concluded from the quoted section.
 - **Tag:** exactly one of:
-  - `[Verified]` — reproduced locally on the recorded Windows build and host
-    version with the recorded method. Only this tag may leave a matrix cell `TBD`.
-  - `[Assumption]` — documented but not reproduced, or supported only by
-    community examples. Cannot score a matrix cell.
+  - `[Verified]` — supported by an official documentation URL with access date,
+    or reproduced locally on the recorded Windows build and host version with a
+    capture path and line reference. Documentation-only evidence is valid; for
+    example, `Stability` can only be established from docs. Only this tag may
+    clear `TBD` from a matrix cell.
+  - `[Assumption]` — community examples or undocumented claims. Cannot clear a
+    matrix cell.
   - `[Rejected]` — tested and failed, or contradicted by measurement. Keep the
     record; do not delete a rejected route.
 

@@ -3,10 +3,11 @@
 Status: scaffold created by Task 0.1. Host columns are filled by Tasks 0.2–0.4
 and scored in Task 0.5.
 
-Every cell starts as `TBD`. A cell may leave `TBD` only with `[Verified]` evidence:
-an official documentation URL with access date, or a capture file under
-`spikes/s1-host-signals/out/` with a line reference. Community examples are
-`[Assumption]` and do not score.
+Every cell starts as `TBD`. A cell clears `TBD` with `[Verified]` evidence: an
+official documentation URL with access date, or a capture file under
+`spikes/s1-host-signals/out/` with a line reference. Documentation-only evidence
+is valid; for example, `Stability` can only be established from docs. Community
+examples or undocumented claims are `[Assumption]` and do not score.
 
 ## §16.1 criteria
 
