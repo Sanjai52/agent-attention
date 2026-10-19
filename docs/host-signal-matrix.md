@@ -1,27 +1,38 @@
 # Host Signal Matrix (S1)
 
-Status: scaffold. Filled by Phase 0 (Tasks 0.2–0.5).
-Every non-TBD cell must cite a `[Verified]` reference: official doc URL + date, or a capture file under `spikes/s1-host-signals/out/`.
+Status: scaffold created by Task 0.1. Host columns are filled by Tasks 0.2–0.4
+and scored in Task 0.5.
 
-| Criterion | OpenCode | Claude Code | Codex | Gemini CLI |
-|---|---|---|---|---|
-| Approval signal | TBD | TBD | TBD | TBD |
-| Resolution signal | TBD | TBD | TBD | TBD |
-| Blocking input | TBD | TBD | TBD | TBD |
-| Turn boundary | TBD | TBD | TBD | TBD |
-| Completion | TBD | TBD | TBD | TBD |
-| Failure | TBD | TBD | TBD | TBD |
-| Stable IDs / sequence | TBD | TBD | TBD | TBD |
-| Subagents | TBD | TBD | TBD | TBD |
-| Non-blocking | TBD | TBD | TBD | TBD |
-| Windows-native | TBD | TBD | TBD | TBD |
-| Stability | TBD | TBD | TBD | TBD |
+Every cell starts as `TBD`. A cell may leave `TBD` only with `[Verified]` evidence:
+an official documentation URL with access date, or a capture file under
+`spikes/s1-host-signals/out/` with a line reference. Community examples are
+`[Assumption]` and do not score.
+
+## §16.1 criteria
+
+| Criterion | Question | OpenCode | Claude Code | Codex | Gemini CLI |
+|---|---|---|---|---|---|
+| Approval signal | Is there an authoritative, documented permission-request signal? | TBD | TBD | TBD | TBD |
+| Resolution signal | Is approve/deny resolution observable? | TBD | TBD | TBD | TBD |
+| Blocking input | Is a blocking question distinguishable from plain text? | TBD | TBD | TBD | TBD |
+| Turn boundary | Is there a documented stop/idle/turn-end signal? | TBD | TBD | TBD | TBD |
+| Completion | Is verified task or session completion exposed? | TBD | TBD | TBD | TBD |
+| Failure | Is failure/error distinguishable from cancel? | TBD | TBD | TBD | TBD |
+| Stable IDs / sequence | Are session and event IDs stable? Is ordering available? | TBD | TBD | TBD | TBD |
+| Subagents | Are subagent sessions identifiable? | TBD | TBD | TBD | TBD |
+| Non-blocking | Can the integration run without delaying the host? | TBD | TBD | TBD | TBD |
+| Windows-native | Does it run natively on Windows? | TBD | TBD | TBD | TBD |
+| Stability | Is the API documented and versioned? | TBD | TBD | TBD | TBD |
+
+Evidence records, including negative tests (RF-S1), are appended to
+[`spikes/s1-results.md`](./spikes/s1-results.md).
 
 ## Scorecard (Task 0.5)
 
 Selection rule (PRD §16.1): highest count of authoritative signals among
 {approval, resolution, turn boundary, completion, failure}; integration
-convenience breaks ties.
+convenience breaks ties. Task 0.4 evaluates Codex or Gemini CLI as the third
+host; only evaluated hosts receive a score.
 
 | Host | Authoritative count | Tie-breaker notes | Selected |
 |---|---|---|---|
