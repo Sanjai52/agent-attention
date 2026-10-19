@@ -7,5 +7,6 @@ export * from "./dedupe/fingerprint";
 export * from "./ordering";
 export * from "./policy/quiet-hours";
 export * from "./presentation/templates";
+export * from "./staleness";
 export * from "./state/session";
 export * from "./state/transitions";
