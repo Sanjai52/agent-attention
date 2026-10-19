@@ -44,6 +44,8 @@ Copied from PRD; every task inherits these.
 
 Phase 0 must finish before Phase 1 (the pipeline's shape depends on S2's process-model outcome). Phases 1→2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
 
+**Execution exception:** Phase 1 (contract + pure core) has no host dependency, so it may proceed in parallel with Phase 0 evidence gathering. No adapter work (Phase 3+) starts until Phase 0 closes D-01. If S2 changes the process model mid-flight, only Phase 2 wiring is reworked, not the pure core.
+
 ## Branch, PR, and Merge Workflow
 
 This is the binding delivery process for every phase.
@@ -52,10 +54,13 @@ This is the binding delivery process for every phase.
 2. **Branch names identify the phase:** `phase-<n>-<kebab-phase-name>` (exact names in the Phase Map above). No `feat/`, `feature/`, ticket numbers, personal names, or vague names — the branch name alone must say which phase it delivers.
 3. **Combined phases.** If two phases must run concurrently (e.g., 4 and 5), they share one branch named for both: `phase-4-5-<combined-kebab-name>`. Never run two parallel branches whose work will conflict at merge time.
 4. **All phase work lands on the branch:** implementation, tests, fixtures, and the phase's docs. `main` receives only completed-phase merges and process docs (like this one).
-5. **Phase completion = end-to-end verification on the branch.** Every task reviewed and complete, then `npm run ci` plus the phase's exit criteria from its plan file run on the branch. A phase with failing tests is not ready for a PR.
-6. **Raise the PR:** push the branch, then `gh pr create` with title `phase <n>: <phase name>` and a body containing scope, task list, test/verification evidence, and any rulings or deferred items. Review every commit included in the PR before merging.
-7. **Merge with a merge commit** (preserves task-level history): `gh pr merge <n> --merge --delete-branch`. Never force-push, never squash away task history, never merge with red CI.
-8. **Then continue:** `git checkout main && git pull`, cut the next phase branch, and repeat. Do not continue work on a merged branch.
+5. **Execution is continuous.** Implement tasks one after another without pausing for per-task review ceremonies. Related tasks may be batched into one implementer dispatch. Stop only for a genuine blocker (missing credentials/tools, ambiguous spec, destructive action) — not to ask permission to continue.
+6. **Phase completion = end-to-end verification on the branch.** When all tasks are implemented, run the full test/build gate (`npm run ci`) plus the phase's exit criteria from its plan file, and fix every failure. This is the bug-check gate: tests, typecheck, lint, and manual smoke where the plan calls for it. Do not open a PR with a red gate.
+7. **Raise the PR:** push the branch, then `gh pr create` with title `phase <n>: <phase name>` and a body containing scope, task list, and test/verification evidence.
+8. **Merge only after explicit confirmation.** Present the PR URL, the test evidence, and any known gaps to the user; wait for their approval, then `gh pr merge <n> --merge --delete-branch`. Never force-push, never squash away task history, never merge with red CI, and never merge on your own initiative.
+9. **Then continue:** `git checkout main && git pull`, cut the next phase branch, and repeat. Do not continue work on a merged branch.
+
+Per-task reviewer subagents are not part of this workflow. Reviews are a phase-boundary activity: one focused review pass after the tests pass, before the PR, and only if the user asks for it.
 
 ## Decision Gates
 
