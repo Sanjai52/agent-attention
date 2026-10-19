@@ -6,7 +6,12 @@
  * fresh `SessionRecord` back.
  */
 
-import type { AgentEvent, AgentEventType, CompletionScope } from "@agent-attention/contract";
+import type {
+  AdapterCapabilities,
+  AgentEvent,
+  AgentEventType,
+  CompletionScope,
+} from "@agent-attention/contract";
 import type {
   PendingRequest,
   SessionRecord,
@@ -26,6 +31,12 @@ export interface StateTransition {
   openedRequest?: PendingRequest;
   closedRequest?: PendingRequest;
   completionScope?: CompletionScope;
+  /**
+   * True when this transition belongs to a subagent session with a known
+   * parent. The pipeline combines it with `subagents.notify` to decide whether
+   * the parent is notified (PRD D-14).
+   */
+  affectsParent: boolean;
 }
 
 const DEFAULT_STATE: Record<AgentEventType, SessionState> = {
@@ -60,6 +71,7 @@ function isTerminal(state: SessionState): boolean {
 
 function newSession(event: AgentEvent, now: string): SessionRecord {
   const parentSessionId = event.session.parentSessionId;
+  const isSubagent = event.session.isSubagent === true && parentSessionId !== undefined;
   const state = DEFAULT_STATE[event.eventType];
   const confidence: SessionStateConfidence =
     event.eventType === "agent.started"
@@ -79,10 +91,10 @@ function newSession(event: AgentEvent, now: string): SessionRecord {
     lastVerifiedAt: undefined,
     pendingRequests: [],
     tasks: [],
-    isSubagent: event.session.isSubagent === true && parentSessionId !== undefined,
+    isSubagent,
   };
 
-  if (parentSessionId !== undefined) {
+  if (isSubagent && parentSessionId !== undefined) {
     session.parentSessionId = parentSessionId;
   }
   if (event.session.projectName !== undefined) {
@@ -235,16 +247,34 @@ function eventTimeForTask(event: AgentEvent): string {
   return eventTimestamp(event);
 }
 
+function supportsTaskScope(
+  event: AgentEvent,
+  session: SessionRecord,
+  capabilities: Pick<AdapterCapabilities, "supportsTaskScope"> | undefined,
+): boolean {
+  if (capabilities !== undefined) {
+    return capabilities.supportsTaskScope;
+  }
+
+  // Without a declaration, a host that supplies taskIds (or already has task
+  // records) is inferred to support task scope.
+  return event.session.taskId !== undefined || session.tasks.length > 0;
+}
+
 /**
  * Applies one accepted event to a session (PRD §13.2).
  *
  * A late or duplicate sequence is ignored unless it closes an open request
  * (PRD §13.4: resolution events always close their request).
+ *
+ * Capabilities are optional. When omitted, task support is inferred from the
+ * event's `taskId` and any existing task records.
  */
 export function applyEvent(
   session: SessionRecord | undefined,
   event: AgentEvent,
   now: string,
+  capabilities?: Pick<AdapterCapabilities, "supportsTaskScope">,
 ): StateTransition {
   const existing =
     session !== undefined &&
@@ -264,7 +294,7 @@ export function applyEvent(
     event.sequence <= existing.lastAcceptedSequence &&
     !closesOpenRequest
   ) {
-    return { session: cloneSession(existing), stateChanged: false };
+    return { session: cloneSession(existing), stateChanged: false, affectsParent: false };
   }
 
   let state = base.state;
@@ -450,11 +480,11 @@ export function applyEvent(
         }
 
         tasks = markTask(tasks, taskId, "completed", eventTime);
-        // Without a capability declaration, a host that supplies taskIds is
-        // inferred to support task scope (interface resolution for Task 1.8).
-        const supported = true;
-        const hasActiveTasks = tasks.some((task) => task.state === "active");
-        state = supported && !hasActiveTasks ? "completed" : "working";
+        const task = tasks.find((record) => record.taskId === taskId);
+        const supported = supportsTaskScope(event, base, capabilities);
+        const hasActiveTasks = tasks.some((record) => record.state === "active");
+        state =
+          supported && task?.state === "completed" && !hasActiveTasks ? "completed" : "working";
         confidence = mapConfidence(event);
         closeEveryRequest();
         break;
@@ -531,11 +561,11 @@ export function applyEvent(
     tasks,
   };
 
-  if (event.session.parentSessionId !== undefined) {
+  const eventIsSubagent =
+    event.session.isSubagent === true && event.session.parentSessionId !== undefined;
+  if (eventIsSubagent) {
+    next.isSubagent = true;
     next.parentSessionId = event.session.parentSessionId;
-    if (event.session.isSubagent === true) {
-      next.isSubagent = true;
-    }
   }
   if (event.session.projectName !== undefined) {
     next.projectName = event.session.projectName;
@@ -552,9 +582,16 @@ export function applyEvent(
     next.lastAcceptedSequence = sequence;
   }
 
+  // `parentSessionId` is only meaningful for a session that is a subagent
+  // (PRD §13.5). The pipeline checks the parent still exists; an unknown
+  // parent is treated as an independent session there.
+  const hasParent = (event.session.parentSessionId ?? next.parentSessionId) !== undefined;
+  const affectsParent = hasParent && next.isSubagent && stateChanged;
+
   return {
     session: next,
     stateChanged,
+    affectsParent,
     ...(openedRequest !== undefined ? { openedRequest } : {}),
     ...(closedRequest !== undefined ? { closedRequest } : {}),
     ...(completionScope !== undefined ? { completionScope } : {}),
