@@ -5,6 +5,7 @@
 | `../PRD.md` | Source of truth for the product | maintained continuously |
 | `phase-0.md` | Phase 0 status: spike workspace, evidence standard, open gates | Phase 0 |
 | `phase-1.md` | Phase 1 report: contract, config, pure core, verification | Phase 1 |
+| `phase-0-1-context.md` | Consolidated Phase 0/1 context, host inspection status, handoff | Phase 0/1 |
 | `plans/00-master-plan.md` | Phase map, gates, traceability | now |
 | `plans/01-phase-0-feasibility-spikes.md` | Feasibility spikes S1–S3 | Phase 0 |
 | `plans/02-phase-1-contract-and-core.md` | Contract, config, pure core | Phase 1 |
