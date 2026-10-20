@@ -24,3 +24,6 @@ spikes/**/out/
 
 # Agent workflow scratch (SDD ledger, briefs, review packages)
 .superpowers/
+
+# Reference repositories (read-only analysis)
+ref/
