@@ -17,6 +17,7 @@
 | `architecture.md` | Components, core module map, boundaries, target data flow | Phase 1 (process model in Phase 2) |
 | `event-contract.md` | AgentEvent/config/capability contract, validation, dedupe, ordering | Phase 1 (IPC in Phase 2) |
 | `adapter-development.md` | How to add a host adapter | Phase 3/5 |
+| `reference-claude-alert.md` | Read-only analysis of the Claude Alert reference implementation | reference |
 | `host-signal-matrix.md` | S1 evidence: per-host signal reliability | Phase 0 |
 | `installation.md` | User install/configure guide | Phase 6 |
 | `troubleshooting.md` | Doctor output, common failures | Phase 2/6 |
