@@ -6,6 +6,8 @@ export * from "./attention/turn-end";
 export * from "./dedupe/fingerprint";
 export * from "./ordering";
 export * from "./policy/quiet-hours";
+export * from "./pipeline/process-event";
+export * from "./pipeline/types";
 export * from "./presentation/templates";
 export * from "./staleness";
 export * from "./state/session";
