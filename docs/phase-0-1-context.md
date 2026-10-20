@@ -15,40 +15,43 @@ Deep reports: [`phase-0.md`](phase-0.md) (spike status) and
 
 | Phase | Status | Meaning |
 |---|---|---|
-| Phase 0 — feasibility spikes | **PARTIAL / PARKED** | Only Task 0.1 (workspace + evidence standard + matrix scaffold) is done. No host was inspected; no gate decision was made. |
-| Phase 1 — contract & core | **COMPLETE on `phase-1-contract-and-core`** | Contract, config, pure core, pipeline, replay harness, docs. `npm run ci` green. **Not merged; no PR opened.** |
-| Phase 2 — host & providers | Not started | Needs Phase 1 interfaces, and ideally D-03/D-04/Q-05 from Phase 0. |
+| Phase 0 — feasibility spikes | **PARTIAL / IN PROGRESS** | Task 0.1 and Task 0.2 Step 1 (OpenCode official docs) are done. OpenCode is 10 `[Verified]` / 1 `[Assumption]`; the S1 probe and S2/S3 are pending. No gate decision has been made. |
+| Phase 1 — contract & core | **COMPLETE and MERGED** | Contract, config, pure core, pipeline, replay harness, docs. `npm run ci` green. PR #1 merged as `92bae16`. |
+| Phase 2 — host & providers | **Blocked** | Needs D-03/D-04/Q-05 from Phase 0; Q-06/Q-07 gate the focus task. The master plan forbids implementing around open gates. |
 | Phase 3 — first adapter | **Blocked** | Requires D-01 (first host) and Q-08 (stable IDs) from Phase 0. |
 | Phase 4 — policy, CLI, history | Not started | Depends on Phase 2. |
 | Phase 5 — second adapter | Not started | Depends on Phase 4. |
 | Phase 6 — hardening & release | Not started | Depends on all prior phases. |
 
 ```text
-main
- └─ phase-1-contract-and-core   <- current branch, Phase 1 complete, 19 commits
-phase-0-feasibility-spikes      <- parked, Task 0.1 only (bc705ca, fb08fd5)
+main (92bae16)                  <- Phase 1 merged (PR #1)
+ └─ phase-0-feasibility-spikes  <- current branch, 4 ahead / 0 behind
+    eac4ff5 docs(s1): OpenCode documentation evidence
 ```
 
-No phase has been merged during this work. The Phase 0 branch is intentionally
-unmerged because its exit gate was never met.
+Phase 1 is merged. The Phase 0 branch remains unmerged because its exit gate
+has not been met.
 
 ## 2. Coding-agent inspection status (direct answer)
 
-**No inspection of OpenCode, Claude Code, Codex, or Gemini CLI was finished.**
+**OpenCode documentation inspection is complete; no capture session has run.
+Claude Code, Codex, and Gemini CLI have not been inspected.**
 
-Phase 0 S1 planned to inspect those four candidate coding agents against the
-PRD §16.1 criteria. Only the inspection **framework** exists. No official host
-documentation was collected, no probe plugin/hook was built, no capture session
-was run, no negative test was executed, and no matrix cell was scored.
+Phase 0 S1 planned to inspect four candidate coding agents against the PRD
+§16.1 criteria. Task 0.2 Step 1 collected official OpenCode documentation and
+recorded 11 evidence records (`S1-01` … `S1-11`). The probe plugin, capture
+sessions, negative tests, and the other host columns remain outstanding.
 
 | Candidate host | Planned task | Docs collected | Probe built | Capture sessions | Negative tests | Matrix cells verified | Status |
 |---|---|---|---|---|---|---|---|
-| OpenCode | 0.2 | None | None | None | None | **0 / 11** | Not inspected |
+| OpenCode | 0.2 | Yes | None | None | None | **10 / 11** (1 `[Assumption]`) | Docs done; probe pending |
 | Claude Code | 0.3 | None | None | None | None | **0 / 11** | Not inspected |
 | Codex | 0.4 candidate | None | None | None | None | **0 / 11** | Not inspected |
 | Gemini CLI | 0.4 candidate | None | None | None | None | **0 / 11** | Not inspected |
 
-The matrix has 11 criteria × 4 hosts = **44 cells, all `TBD`**:
+The matrix has 11 criteria × 4 hosts = **44 cells**: OpenCode has 10
+`[Verified]`, 1 `[Assumption]` (permission resolution), and the other 33 cells
+are `TBD`.
 
 `Approval signal`, `Resolution signal`, `Blocking input`, `Turn boundary`,
 `Completion`, `Failure`, `Stable IDs / sequence`, `Subagents`, `Non-blocking`,
@@ -56,9 +59,9 @@ The matrix has 11 criteria × 4 hosts = **44 cells, all `TBD`**:
 
 What this means concretely:
 
-- There is **no `[Verified]` host-signal evidence** anywhere in the repository.
 - **D-01 (first host), D-03 (process model), D-04 (SQLite binding), Q-05
-  (Windows delivery), Q-06/Q-07 (focus), and Q-08 (stable IDs) are all open.**
+  (Windows delivery), Q-06/Q-07 (focus), and Q-08 (stable IDs across candidate
+  hosts) are still open.**
 - There are **no recorded host fixtures** for Phase 3 adapters.
 - Phase 1 did **not** inspect or reverse-engineer any coding agent's internals.
   It was built from the PRD contract only. The pure core has no host dependency,
@@ -68,9 +71,10 @@ What does exist:
 
 | Artifact | Where |
 |---|---|
-| Basic 11×4 matrix scaffold (all TBD) | `docs/host-signal-matrix.md` on this branch |
+| OpenCode evidence records `S1-01` … `S1-11` | `docs/spikes/s1-results.md` |
+| Matrix with the OpenCode column populated | `docs/host-signal-matrix.md` |
 | Richer matrix with criterion questions, evidence standard, negative-test rules | `phase-0-feasibility-spikes` branch |
-| Spike workspace and per-spike READMEs | `spikes/` on the phase-0 branch (not on this branch) |
+| Spike workspace and per-spike READMEs | `spikes/` on the phase-0 branch |
 | Result-record templates | `docs/spikes/s1-results.md`, `s2-results.md`, `s3-results.md` on the phase-0 branch |
 
 Do not cite the PRD's `[Assumption]` tags as inspection results. They remain
@@ -79,7 +83,8 @@ assumptions until the phase-0 evidence log says `[Verified]`.
 ## 3. Phase 0 — what was actually done
 
 Phase 0's goal was to replace blocking assumptions with measured evidence and
-close the feasibility gate (PRD M0). Only **Task 0.1** ran.
+close the feasibility gate (PRD M0). **Task 0.1** and **Task 0.2 Step 1** have
+run.
 
 ### Deliverables on `phase-0-feasibility-spikes`
 
@@ -87,6 +92,8 @@ close the feasibility gate (PRD M0). Only **Task 0.1** ran.
 |---|---|
 | `bc705ca` | Added spike workspace, evidence logs, and the §16.1 matrix scaffold (8 files, 503 insertions) |
 | `fb08fd5` | Fixed the S1 evidence standard so doc-only evidence and capture evidence are consistent |
+| `7aa5d67` | Synced the Phase 0 branch with merged `main` |
+| `eac4ff5` | Added OpenCode documentation evidence `S1-01` … `S1-11`; populated the OpenCode matrix column |
 
 Files added on that branch:
 
@@ -99,8 +106,9 @@ Files added on that branch:
 - `spikes/s3-windows-delivery/README.md` — audio/TTS/toast/focus prototypes and
   provider selection.
 - `docs/spikes/s1-results.md`, `s2-results.md`, `s3-results.md` — six-field
-  evidence-record templates.
-- `docs/host-signal-matrix.md` — 11 criteria, 4 hosts, all `TBD`, scoring rule.
+  evidence-record templates; S1 now also contains `S1-01` … `S1-11`.
+- `docs/host-signal-matrix.md` — 11 criteria, 4 hosts; OpenCode has 10
+  `[Verified]` and 1 `[Assumption]`; the other 33 cells are `TBD`.
 
 ### Evidence standard created
 
@@ -114,13 +122,13 @@ Windows build, tool versions, method, raw observation, conclusion, and tag.
 
 | Spike | Tasks | Status |
 |---|---|---|
-| S1 host signals | 0.2 OpenCode, 0.3 Claude Code, 0.4 Codex/Gemini, 0.5 scorecard/D-01/fixtures | Not started |
+| S1 host signals | 0.2 OpenCode (docs done; probe/captures pending), 0.3 Claude Code, 0.4 Codex/Gemini, 0.5 scorecard/D-01/fixtures | Partial |
 | S2 process + storage | 0.6 process-model prototype, 0.7 SQLite binding | Not started |
 | S3 Windows delivery | 0.8 audio, 0.9 TTS, 0.10 toast/AUMID, 0.11 focus/click-to-focus, 0.12 provider selection | Not started |
 | Exit | 0.13 gate review, PRD §23/§24 updates, re-baseline | Not started |
 
-The phase is parked, not cancelled. The branch keeps the framework so the work
-can resume without rebuilding it.
+The phase was parked after Task 0.1 and has been resumed. The branch keeps the
+framework, and the OpenCode documentation pass is already committed.
 
 ### Why it was parked
 
@@ -131,8 +139,8 @@ exception does **not** apply to adapters: Phase 3 cannot start until D-01 closes
 
 ### Impact if Phase 0 stays open
 
-- Phase 2 can prototype with planning defaults, but D-03/D-04 may force rewiring
-  of the process model and storage binding.
+- Phase 2 cannot start under the master plan's gate rule: D-03/D-04/Q-05 must
+  be decided before host/process/storage/provider implementation.
 - Phase 3 adapter work would be guesswork and may target the wrong host.
 - F13 focus features cannot be implemented honestly (Q-06/Q-07).
 - The Windows delivery guarantee (Q-05) remains unproven.
@@ -219,14 +227,14 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 
 ### Open
 
-- [ ] Phase 0 host inspections (0.2–0.5) — all four hosts.
+- [ ] Phase 0 OpenCode probe and captures (0.2 Steps 2–6).
+- [ ] Phase 0 Claude Code and third-host inspections (0.3–0.5).
 - [ ] Phase 0 process/storage evidence (0.6–0.7) — D-03/D-04.
 - [ ] Phase 0 Windows delivery evidence (0.8–0.12) — Q-05/Q-06/Q-07.
 - [ ] Phase 0 exit and re-baseline (0.13).
 - [ ] D-01 first host; Q-08 stable IDs.
-- [ ] Phase 2 host/providers.
-- [ ] Phase 3 adapters (blocked).
-- [ ] Phase 1 PR and merge (none raised; needs explicit confirmation).
+- [ ] Phase 2 host/providers (blocked on Phase 0 gates).
+- [ ] Phase 3 adapters (blocked on D-01/Q-08).
 - [ ] `waitingAfterHours` config decision (Phase 4).
 - [ ] Ended-session ID reuse policy (Phase 2).
 - [ ] Focus awareness and click-to-focus (Phase 2/4 after Q-06/Q-07).
@@ -271,7 +279,7 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 ## 8. Commands
 
 ```bash
-# Verify the phase-1 branch
+# Verify merged main or the Phase 0 branch
 npm ci
 npm run ci
 
@@ -288,14 +296,12 @@ git status --short
 
 ## 9. Recommended next actions
 
-1. **Decide on Phase 1 delivery:** review the branch and, if approved, raise the
-   PR (`phase 1: contract and core`) and merge only after confirmation. It is
-   currently complete but unmerged.
-2. **Resume Phase 0 before any adapter work:** check out
-   `phase-0-feasibility-spikes` (or re-apply `bc705ca` + `fb08fd5` if `main`
-   moved), execute Tasks 0.2–0.5, and fill the matrix with `[Verified]`
-   evidence. Then execute S2/S3 (0.6–0.12) and close 0.13.
-3. **Phase 2 can start against the Phase 1 interfaces** (pipeline, store,
-   clock, plans, timers), but treat D-03/D-04/Q-05 as unsettled and isolate the
-   wiring so an S2/S3 outcome does not rewrite the core.
+1. **Phase 1 is delivered and merged.** PR #1 is closed; `main` is `92bae16`.
+2. **Finish Phase 0 before Phase 2:** check out `phase-0-feasibility-spikes`,
+   complete the OpenCode probe and captures, inspect Claude Code and a third
+   host, then execute S2/S3 (0.6–0.12) and close 0.13. Fill the matrix only with
+   `[Verified]` evidence.
+3. **Do not start Phase 2 while D-03/D-04/Q-05 are open.** The master plan
+   forbids implementing around an undecided gate. Phase 2 is cut from updated
+   `main` after Phase 0 merges.
 4. **Do not start Phase 3** until D-01 is decided and Q-08 is answered.

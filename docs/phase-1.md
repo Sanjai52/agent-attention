@@ -1,17 +1,17 @@
 # Phase 1 — Contract and Core: Implementation Report
 
-**Status: COMPLETE on `phase-1-contract-and-core`** (not merged; no PR opened —
-the user asked to stop once Phase 1 was complete).
+**Status: COMPLETE and MERGED** via PR #1 (`phase 1: contract and core`),
+merge commit `92bae16` on `main`.
 
 | Item | Value |
 |---|---|
 | Plan | [`plans/02-phase-1-contract-and-core.md`](plans/02-phase-1-contract-and-core.md) |
-| Branch | `phase-1-contract-and-core`, cut from `main` |
+| Branch | `phase-1-contract-and-core`, merged and deleted |
 | Tasks | 1.1–1.18 complete |
 | Implementation commits | `8c0239f` … `3aa13b3` (17 task commits), plus the volume-independence test and docs commits |
 | Gate | `npm run ci` green: lint, dependency check, typecheck, **310 tests / 19 files**, build |
 | Exit criteria | Pure core complete; synthetic replay passes; PRD §19.1 core areas covered; docs written |
-| Merge | Waiting for explicit user confirmation; no PR raised yet |
+| Merge | PR #1 merged with a merge commit (`92bae16`) after explicit confirmation |
 
 ## 1. Outcome
 
@@ -298,7 +298,7 @@ npm run build       -> all workspaces build
 | Real-host fixtures and payload normalization | Blocked on D-01 | Phase 3 |
 | DST/cross-midnight integration under a fake clock | Integration-level test | Phase 4 Task 4.8 |
 | Queue priority execution | Core publishes priorities; host executes | Phase 2 |
-| Phase 0 evidence (S1–S3) | Parked after Task 0.1 | Phase 0 |
+| Phase 0 evidence (S1–S3) | S1 OpenCode documentation done; S1 probe and S2/S3 pending | Phase 0 |
 | Config writer preserving unknown keys | Writer is a host concern | Phase 4 |
 
 Additional assumptions Phase 2 must honor:
@@ -318,7 +318,7 @@ Additional assumptions Phase 2 must honor:
 ## 7. How to verify locally
 
 ```bash
-git checkout phase-1-contract-and-core
+git checkout main
 npm ci
 npm run ci
 npx vitest run tests/unit/core/replay.test.ts

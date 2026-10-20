@@ -1,6 +1,6 @@
 # Phase 0 — Feasibility Spikes: Status Report
 
-**Status: PARTIAL — PARKED, not complete.**
+**Status: PARTIAL — RESUMED, not complete.**
 The Phase 0 exit gate (M0) has **not** been met. This document records what was
 actually done, what remains, and why Phase 1 was allowed to proceed first.
 
@@ -8,9 +8,9 @@ actually done, what remains, and why Phase 1 was allowed to proceed first.
 |---|---|
 | Plan | [`plans/01-phase-0-feasibility-spikes.md`](plans/01-phase-0-feasibility-spikes.md) |
 | Branch | `phase-0-feasibility-spikes` (not merged) |
-| Commits | `bc705ca` workspace + evidence logs; `fb08fd5` S1 evidence-standard fix |
+| Commits | `bc705ca` workspace + evidence logs; `fb08fd5` S1 evidence-standard fix; `7aa5d67` sync with `main`; `eac4ff5` OpenCode documentation evidence |
 | PRD gate | §20 M0 — D-01/D-03/D-04 decided, Q-05/Q-06/Q-07 answered, matrix written, schedule re-baselined |
-| Executed | Task 0.1 only (spike workspace and evidence logs) |
+| Executed | Task 0.1; Task 0.2 Step 1 (OpenCode official documentation) |
 
 ## 1. Why Phase 0 exists
 
@@ -31,10 +31,13 @@ Without this evidence, adapter capability declarations and the process model
 would be guesses. The PRD requires every spike result to be tagged
 `[Verified]`, `[Assumption]`, or `[Rejected]` with raw evidence.
 
-## 2. What was completed (Task 0.1)
+## 2. What was completed (Tasks 0.1 and 0.2 Step 1)
 
-Task 0.1 created the workspace, evidence logs, and the host-signal matrix. No
-experiments were run and no host claim was verified.
+Task 0.1 created the workspace, evidence logs, and the host-signal matrix.
+Task 0.2 Step 1 then collected official OpenCode documentation and populated
+the OpenCode column: **10 `[Verified]` cells and 1 `[Assumption]` cell**. No
+capture sessions or probe plugins have run yet; every other host is still
+`TBD`.
 
 ### Created files
 
@@ -50,10 +53,11 @@ experiments were run and no host claim was verified.
 
 ### Modified file
 
-`docs/host-signal-matrix.md` now has the PRD §16.1 criteria as 11 rows, one
-column per candidate host (OpenCode, Claude Code, Codex, Gemini CLI), and all
-44 cells set to `TBD`. It also defines the scoring rule: only `[Verified]`
-evidence clears a cell.
+`docs/host-signal-matrix.md` has the PRD §16.1 criteria as 11 rows and one
+column per candidate host (OpenCode, Claude Code, Codex, Gemini CLI). The
+OpenCode column now has 10 `[Verified]` documentation-backed cells and 1
+`[Assumption]` cell (permission resolution); the other 33 cells remain `TBD`.
+Only `[Verified]` evidence clears a cell.
 
 ### Evidence standard (after the fix round)
 
@@ -76,8 +80,8 @@ could have changed the authoritative count behind D-01.
 
 - `git show --stat bc705ca`: exactly 8 files (7 created, 1 modified), 503
   insertions, 17 deletions; worktree clean after commit.
-- Matrix check against the committed blob: 11 criteria rows × 4 host columns,
-  all 44 cells `TBD`.
+- Matrix check after `eac4ff5`: 11 criteria rows × 4 host columns; OpenCode has
+  10 `[Verified]` and 1 `[Assumption]`; the other 33 cells are `TBD`.
 - Each spike README contains the required question, time box, method,
   reproduction steps, and throwaway warning.
 - All three result logs contain the exact six-field record template.
@@ -89,7 +93,7 @@ could have changed the authoritative count behind D-01.
 
 | Task | Deliverable | Status |
 |---|---|---|
-| 0.2 | OpenCode host signals (probe plugin, captures, matrix column) | Not started |
+| 0.2 | OpenCode host signals (probe plugin, captures, matrix column) | Docs done; probe/captures pending |
 | 0.3 | Claude Code host signals | Not started |
 | 0.4 | Third host (Codex or Gemini CLI) signals | Not started |
 | 0.5 | S1 scorecard, D-01 decision, fixture capture | Not started |
@@ -106,8 +110,9 @@ Consequences:
 
 - **D-01, D-03, D-04 are still open.**
 - **Q-05, Q-06, Q-07, Q-08 are still unanswered.**
-- All 44 host-signal cells remain `TBD`.
-- No fixture captured from a real host exists yet.
+- OpenCode has 10 `[Verified]` and 1 `[Assumption]`; the other 33 host-signal
+  cells remain `TBD`.
+- No local capture or fixture from a real host exists yet.
 - No spike prototype code exists yet; `spikes/**/out/` is empty by design.
 
 ## 4. Why Phase 1 proceeded first
@@ -132,26 +137,28 @@ Phase 2 wiring is reworked, not the pure core.
 
 | Ruling | Reason | Cost if wrong |
 |---|---|---|
-| Phase 0 parked after Task 0.1 | User redirected effort to product implementation; core has no host dependency | Adapter docs/fixtures need rework; core unaffected |
+| Phase 0 parked after Task 0.1, resumed 2026-10-20 | User redirected effort to product implementation; core has no host dependency | Adapter docs/fixtures need rework; core unaffected |
 | Phase 0 branch not merged | Phase is incomplete; only complete phases merge to `main` | Phase 0 must be resumed from its branch or re-applied |
 | Per-task reviewer subagents removed | User asked for less review overhead and phase-end testing | Defects surface at the phase boundary instead of per task |
 | Workflow now merges only after explicit user confirmation | User instruction | No accidental merge |
 
 ## 6. How to resume Phase 0
 
-1. Check out `phase-0-feasibility-spikes` (or re-apply `bc705ca` + `fb08fd5` if
-   `main` has moved).
-2. Execute Tasks 0.2–0.4 against the installed hosts, recording every result in
+1. Check out `phase-0-feasibility-spikes` (it is synced with `main` at
+   `7aa5d67` and carries the OpenCode documentation commit `eac4ff5`).
+2. Finish Task 0.2: build the OpenCode probe, run the three capture sessions,
+   negative-test the permission signal, and close the resolution gap.
+3. Execute Tasks 0.3–0.4 against the installed hosts, recording every result in
    `docs/spikes/s1-results.md` and filling the matrix cells.
-3. Execute Task 0.5: score the matrix, decide D-01, and freeze captures under
+4. Execute Task 0.5: score the matrix, decide D-01, and freeze captures under
    `tests/fixtures/<host>/`.
-4. Execute Tasks 0.6–0.7: process-model and SQLite prototypes; record p50/p95
+5. Execute Tasks 0.6–0.7: process-model and SQLite prototypes; record p50/p95
    latency and decide D-03/D-04.
-5. Execute Tasks 0.8–0.12: audio, TTS, toast/AUMID, focus/click-to-focus, and
+6. Execute Tasks 0.8–0.12: audio, TTS, toast/AUMID, focus/click-to-focus, and
    provider selection; decide Q-05/Q-06/Q-07.
-6. Execute Task 0.13: close the gate, update PRD §23/§24 in the same change,
+7. Execute Task 0.13: close the gate, update PRD §23/§24 in the same change,
    and re-baseline the schedule.
-7. Run the full gate, raise the phase PR, and merge only after confirmation.
+8. Run the full gate, raise the phase PR, and merge only after confirmation.
 
 ## 7. Known issues carried forward
 
@@ -161,5 +168,7 @@ Phase 2 wiring is reworked, not the pure core.
 2. **Documentation index:** `docs/README.md` previously pointed the `spikes/`
    row at result records, which now live under `docs/spikes/`; corrected with
    this report.
-3. **No evidence yet:** nothing in this phase should be read as a host
-   capability claim. Every matrix cell is still `TBD`.
+3. **Documentation is not a capture:** the OpenCode `[Verified]` cells are
+   official-documentation evidence only. The one `[Assumption]` cell
+   (permission resolution) and all unprobed behavior still need local capture
+   evidence before they can support a capability claim.
