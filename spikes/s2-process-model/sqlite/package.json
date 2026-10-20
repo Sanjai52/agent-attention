@@ -1,0 +1,16 @@
+{
+  "name": "s2-sqlite-probe",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Throwaway A/B probe for the D-04 SQLite binding decision. Not production code.",
+  "scripts": {
+    "probe:node": "node src/probe.mjs node",
+    "probe:better": "node src/probe.mjs better",
+    "lock:hold": "node src/hold-lock.mjs",
+    "lock:probe": "node src/lock-probe.mjs"
+  },
+  "dependencies": {
+    "better-sqlite3": "12.4.1"
+  }
+}
