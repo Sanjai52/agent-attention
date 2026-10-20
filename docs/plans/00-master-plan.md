@@ -124,8 +124,8 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 
 ## Progress
 
-- [ ] Phase 0 — Feasibility spikes
-- [ ] Phase 1 — Contract & core
+- [ ] Phase 0 — Feasibility spikes (Task 0.1 done; parked — see [`../phase-0.md`](../phase-0.md))
+- [x] Phase 1 — Contract & core (report: [`../phase-1.md`](../phase-1.md))
 - [ ] Phase 2 — Host & providers
 - [ ] Phase 3 — First adapter
 - [ ] Phase 4 — Policy, CLI, history
