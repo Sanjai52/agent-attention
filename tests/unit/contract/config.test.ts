@@ -174,4 +174,21 @@ describe("parseConfig", () => {
     expect(result.config.globalMute).toBe(true);
     expect(result.config.events.needsInput.sound.volume).toBe(35);
   });
+
+  it("keeps volume settings independent per event class and channel", () => {
+    const result = parseConfig({
+      events: {
+        needsInput: { sound: { volume: 80 } },
+        needsApproval: { sound: { volume: 10 } },
+      },
+    });
+
+    expect(result.config.events.needsInput.sound.volume).toBe(80);
+    expect(result.config.events.needsApproval.sound.volume).toBe(10);
+    expect(result.config.events.turnEnded.sound.volume).toBe(25);
+    expect(result.config.events.completed.sound.volume).toBe(25);
+    expect(result.config.events.failed.sound.volume).toBe(40);
+    expect(result.config.voice.volume).toBe(50);
+    expect(result.diagnostics).toEqual([]);
+  });
 });
