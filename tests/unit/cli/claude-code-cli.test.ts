@@ -1,0 +1,30 @@
+import { readFile, rm, mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { runCli } from "../../../packages/cli/src/main";
+
+function capture() {
+  let stdout = "";
+  let stderr = "";
+  return { io: { stdout: { write(value: string) { stdout += value; } }, stderr: { write(value: string) { stderr += value; } } }, output: () => ({ stdout, stderr }) };
+}
+
+describe("Claude Code installer CLI", () => {
+  it("installs and uninstalls through the host-specific command path", async () => {
+    const root = await mkdtemp(join(tmpdir(), "agent-attention-claude-cli-"));
+    const settings = join(root, "settings.json");
+    const command = "agent-attention claude-hook";
+    try {
+      const installed = capture();
+      await expect(runCli(["install", "--host", "claude-code", "--settings", settings, "--command", command, "--json"], { io: installed.io })).resolves.toBe(0);
+      expect(JSON.parse(installed.output().stdout).changed).toBe(true);
+      expect((await readFile(settings, "utf8")).match(/agent-attention claude-hook/g)).toHaveLength(7);
+      const removed = capture();
+      await expect(runCli(["uninstall", "--host", "claude-code", "--settings", settings, "--command", command, "--json"], { io: removed.io })).resolves.toBe(0);
+      expect(JSON.parse(removed.output().stdout).changed).toBe(true);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+});
