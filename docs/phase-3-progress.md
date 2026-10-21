@@ -200,5 +200,7 @@ than hidden. A fresh permission-allow attempt did not invoke a permissioned
 tool; approval support remains backed by the frozen real-host approval capture
 and its passing replay/redaction tests.
 
-The remaining delivery action is review/merge of the two worktree commits into
-the integration branch; no implementation or evidence gate remains open.
+The worktree commits were reviewed and merged into the Phase 3 integration
+branch, and Phase 3 is now included in `main` through the subsequent Phase 4
+integration merge. No implementation or evidence gate remains open for the
+Phase 3 scope.

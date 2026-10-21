@@ -1,7 +1,7 @@
 # Phase 4 Acceptance Matrix
 
 This matrix records the current Phase 4 integration evidence on
-`phase-4-policy-cli-history`.
+`phase-4-policy-cli-history`, merged into `main` as `7c1ed1a`.
 
 | PRD area | Evidence | Status |
 | --- | --- | --- |

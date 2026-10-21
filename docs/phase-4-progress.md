@@ -1,7 +1,7 @@
 # Phase 4 — Attention Policy, CLI, and History Progress
 
-**Integration branch:** `phase-4-policy-cli-history`  
-**Base:** `phase-3-opencode-integration` at `23133df`  
+**Integration branch:** `phase-4-policy-cli-history` (merged into `main` as `7c1ed1a`)
+**Base:** `phase-3-opencode-integration` at `23133df`
 **Status:** COMPLETE for supported capabilities; F13 focus suppression is explicitly unsupported for this release.
 
 ## Branch and worktree allocation
@@ -36,4 +36,6 @@ is explicitly unsupported for this release because the event contract does not
 provide verified session-to-window mapping; the host does not guess or suppress
 alerts on that basis.
 
-No Phase 4 changes have been merged into `main`.
+Phase 4 was merged into `main` through PR #5. The local `main` checkout is
+fast-forwarded to the merged result; the Phase 4 branch remains available for
+traceability.
