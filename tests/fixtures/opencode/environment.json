@@ -1,0 +1,17 @@
+{
+  "host": "OpenCode",
+  "version": "v2.0.32",
+  "date": "2026-10-20",
+  "os": "Windows 10.0.26300.0",
+  "node": "v24.20.0",
+  "sources": [
+    "permission-allow.jsonl",
+    "permission-deny.jsonl",
+    "plain-text.jsonl",
+    "negative-progress.jsonl",
+    "abort.jsonl",
+    "error-invalid-model.jsonl",
+    "subagent.jsonl"
+  ],
+  "sanitization": "Absolute checkout paths replaced with <CHECKOUT>/<REPO>/<USER_HOME>; global instruction text and model reasoning text redacted; probe lastMessages removed from outcome bindings. Event names, IDs, payload fields, ordering, and counts are unchanged."
+}

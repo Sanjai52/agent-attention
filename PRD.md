@@ -4,14 +4,14 @@
 |---|---|
 | **File** | `PRD.md` |
 | **Product** | Agent Attention |
-| **Document version** | 2.1 |
-| **Last updated** | 2026-10-20 |
+| **Document version** | 2.2 |
+| **Last updated** | 2026-10-21 |
 | **Status** | Proposed — MVP specification (source of truth) |
 | **Product type** | Cross-agent plugin ecosystem |
 | **Initial platform** | Windows 10/11 (native) |
 | **Primary language** | TypeScript |
 | **Architecture** | Agent-native adapters + shared notification core + local Notification Host (headless helper) |
-| **Initial integration** | Selected by scorecard in Milestone 0 (OpenCode is the default candidate; see §16.1) |
+| **Initial integration** | **OpenCode v2.0.32** (D-01, S1 scorecard; see §16.3) |
 | **Target integrations** | Claude Code, OpenAI Codex, Gemini CLI, other compatible coding agents |
 
 ---
@@ -541,6 +541,13 @@ A CLI is a non-interactive command, not a desktop application. It has no window,
 - **F13-R2** If foreground-window detection is not reliable (S3 outcome), F13 ships disabled and is documented as unsupported rather than approximated.
 - **F13-R3** **[Decided, D-11]** Focus suppression applies to all event classes by default; `needs_approval` MAY be configured to bypass focus suppression (`focus.bypassForApproval`, default `false`).
 - **F13-R4** An "away" heuristic (no input for N minutes) MAY be added post-MVP.
+- **F13-R5 [Decided, Q-06]** Ship F13 only for hosts that can supply a session
+  window handle: Windows Terminal (`GetConsoleWindow()` → `GW_OWNER`) and
+  classic console (`GetConsoleWindow()`). VS Code is **unsupported** because its
+  extension API exposes no session→HWND mapping and PID-only matching produced
+  false positives (two windows shared one PID). Focus suppression is
+  window-scoped, not pane/tab-scoped; document that limit. `doctor` must report
+  the per-host capability.
 
 **Acceptance criteria**
 
@@ -684,23 +691,24 @@ Volumes are integers 0–100. Times are `HH:mm` 24-hour. Unknown `soundId` value
 
 A shared core and a headless local Notification Host, with thin agent-specific adapters. The core owns normalization, state, deduplication, policy, and delivery. Adapters own host discovery and translation only.
 
-## 9.2 Process model [Proposed — validate in S2, decision D-03]
+## 9.2 Process model [Decided — D-03, S2]
 
 Coding-agent hosts integrate in different ways: some load in-process plugins; others spawn a fresh command per lifecycle hook. A fresh process per event cannot hold state, cannot deduplicate atomically in memory, and pays startup cost each time. Therefore:
 
-1. **Notification Host** — a headless, long-lived local process (no window, no tray icon). Started on demand by the first event from any adapter, exits after an idle period with no live sessions (default 10 minutes). It is the **single writer** for the database, owns providers, the audio queue, timers (reminders, stale detection, grace windows), and policy evaluation.
+1. **Notification Host** — a headless, long-lived local process (no window, no tray icon). Started on demand by the first event from any adapter. It exits only when there is no connected client and no session has been seen within `session-live-ms`, then after `idle-ms` (default 600000); this avoids exiting between two events of a live session. It is the **single writer** for the database, owns providers, the audio queue, timers (reminders, stale detection, grace windows), and policy evaluation.
 2. **Adapters** — either an in-process plugin (where the host supports it) or a **hook shim**: a minimal script that reads the host's hook payload, normalizes it, sends it to the Notification Host, and exits.
-3. **Transport** — a per-user named pipe (e.g., `\\.\pipe\agent-attention-<user>`) with an ACL restricted to the current user. No TCP listener. [Proposed]
+3. **Transport** — a per-user named pipe `\\.\pipe\agent-attention-u-<sid8>`, where `<sid8>` is a short hash of the account SID (not the mutable username). Exclusive pipe creation is the single-instance guard; a second host exits without taking over. No TCP listener. The default Node DACL grants `Everyone`/`Anonymous` read, so after `listen()` the host MUST harden the DACL to `SYSTEM` + the current user SID with a bundled native helper and read it back before announcing readiness. Until hardening completes, another user may observe the pipe (no write access was observed); that post-create window is a documented residual risk. PowerShell hardening is a fallback only because it adds ~600 ms.
 4. **Shim behavior (hard requirements):**
    - MUST NOT block the host: bounded total runtime (default ≤ 1000 ms), then exit.
    - MUST exit with a status that never alters host behavior (no blocking exit codes) unless a host explicitly requires otherwise and the spec is amended.
-   - If the pipe is unreachable, spawn the Notification Host detached (hidden, no console window), retry once with a short timeout; if still unreachable, **spool** the event to `%LOCALAPPDATA%\AgentAttention\spool\*.jsonl` and exit. The Notification Host ingests the spool on start, preserving order, and deduplicates normally.
+   - If the pipe is unreachable, spawn the Notification Host detached (hidden, no console window), then perform **one bounded retry phase** (fixed short poll, e.g. 40 ms, within the remaining budget), not a single immediate retry. If still unreachable, **spool** the event and exit.
+   - Spool files are atomic per-event files under `%LOCALAPPDATA%\AgentAttention\spool\`; write to a temporary name, commit, then delete after acknowledgement. The host ingests the spool on start and deduplicates by `eventId`. File-name order is preserved; concurrent writes in the same millisecond have no total order, so the per-session `sequence` is authoritative.
    - MUST write nothing to the host's stdout/stderr that the host could interpret as instructions.
 5. **CLI** uses the same pipe interface.
 
-Because only the Notification Host opens SQLite, native-module and runtime-version problems are confined to one controlled process, not every adapter runtime. [Proposed — D-04]
+Because only the Notification Host opens SQLite, database and runtime-version problems are confined to one controlled process, not every adapter runtime. The built-in `node:sqlite` binding removes the native-module install path entirely. [Decided — D-04]
 
-If S2 shows that an in-process model is sufficient and safe for all initially supported hosts, the Notification Host MAY be embedded for that host, but the single-writer rule and the interface in §9.4 remain.
+In-process embedding was not trialled and is not selected for the MVP. It remains a documented option for a single-host scenario, but the single-writer rule and the interface in §9.4 remain.
 
 ## 9.3 High-level architecture
 
@@ -776,15 +784,15 @@ Start-on-demand, single-instance guarantee (named mutex or exclusive pipe creati
 | Component | Technology | Status |
 |---|---|---|
 | Language | TypeScript | Decided |
-| Runtime | Node.js (version range set after S1/S2) | Assumption |
+| Runtime | Node.js 24 LTS; tested at **24.20.0**; require `>=24.20.0 <25` for built-in `node:sqlite`; per-host adapter runtime compatibility is declared separately | Decided (S1/S2) |
 | Package manager / monorepo | **npm** with npm workspaces (`workspaces` field in root `package.json`); committed `package-lock.json`; `npm ci` in CI | Decided (D-18) |
 | Dependency hygiene | Lint rule (e.g., `import/no-extraneous-dependencies`) or depcheck in CI to catch undeclared dependencies; each adapter, shim, and host bundled with tsup so shipped code is self-contained | Decided (D-18) |
 | Internal versioning | Version ranges between workspace packages; Changesets MAY be adopted if keeping versions in sync becomes costly | Proposed |
 | Schema validation | **Zod** for events and config; JSON Schema generated for docs/CLI `--json` | Decided (D-06) |
-| Persistence | SQLite, single-writer in Notification Host; binding choice (built-in vs native module) decided in S2 | Proposed |
+| Persistence | SQLite via built-in `node:sqlite` (`DatabaseSync`); single-writer in Notification Host; WAL; explicit transactions; busy timeout configured explicitly (default is 0). No native module, no postinstall build; requires Node ≥24.20.0 | Decided (D-04) |
 | Configuration | JSON validated by Zod | Decided |
-| IPC | Windows named pipe, current-user ACL | Proposed (S2) |
-| Audio / TTS / toast | Chosen in S3 among: OS-native APIs via a minimal helper, PowerShell with parameterized invocation, or a vetted library. Selection criteria: works unpackaged, no string-interpolated shell, low startup latency, not flagged by common AV/EDR, no cloud | Open (Q-05) |
+| IPC | Windows named pipe `\\.\pipe\agent-attention-<sid>`; exclusive pipe creation is the single-instance guard; DACL hardened to SYSTEM + current user **before readiness** via a bundled native helper; bounded retry polling then atomic per-event spool files | Decided (D-03) |
+| Audio / TTS / toast | **Sound:** in-process `winmm` MCI via `koffi` primary; fixed PowerShell `SoundPlayer` fallback. **TTS:** fixed PowerShell `System.Speech` script, UTF-8 text via stdin, resident worker. **Toast:** per-user AUMID + Start Menu shortcut + WinRT `ToastNotificationManager`, fixed PowerShell sender, JSON via stdin, sanitized before XML. All local; no cloud; no event text on a command line | Decided (Q-05) |
 | Unit tests | Vitest | Decided |
 | Adapter tests | Recorded-event fixtures + mock host; small live smoke suite | Decided (D-08) |
 | Build | tsup (or tsc) | Decided |
@@ -1279,26 +1287,56 @@ export interface AgentAttentionAdapter {
 
 ## 16.3 OpenCode adapter
 
-Candidate for the first integration, since it **[Assumption]** offers a TypeScript/JavaScript plugin mechanism with lifecycle and permission events. Goals:
+**[Decided, D-01]** First integration. S1 verified the v2.0.32 TypeScript/JavaScript
+plugin mechanism and permission lifecycle at runtime. Goals:
 
 - Register through the documented plugin system.
-- Subscribe to permission and session lifecycle events; normalize them.
-- Emit authoritative approval and resolution events if the host provides them.
-- Determine whether an idle-session event can be used **only** as `turn_ended` (an idle event is never completion).
-- Determine how, or whether, blocking input can be distinguished from plain text.
-- Validate against real sessions and record fixtures.
+- Subscribe to `permission.asked`, `permission.replied`, and
+  `session.execution.started|succeeded|failed|interrupted`; normalize them.
+- Emit authoritative `needs_approval` and `approval_resolved` events from
+  `permission.asked` / `permission.replied`.
+- Do **not** wait for the documented `session.idle` event: it did not fire in
+  v2.0.32 (0/260). Use the `session.execution.*` terminal events; bind
+  `succeeded`/`failed` to the durable idle message outcome before emitting a
+  classified event. An idle signal is never used as completion by itself.
+- Treat `session.execution.interrupted` with `reason:"shutdown"` after a denied
+  permission as cancellation, not failure.
+- Blocking input is distinguishable for typed permission requests; the
+  dedicated question tool was not exercised at runtime, so keep that mapping
+  behind a capability flag until re-probed.
+- Validate against the frozen fixtures under `tests/fixtures/opencode/`.
 
 ## 16.4 Claude Code adapter
 
-**[Assumption]** The host exposes documented hooks for notification, permission, and stop-type moments; S1 verifies this. Goals: use documented hooks only; map permission signals to `needs_approval`; map any stop-type hook to `turn_ended` (not completion) unless documentation establishes verified completion semantics; if a hook exposes only session-level information, represent it as session scope only; respect the host's permission workflow; hook shim must satisfy §9.2 non-blocking rules.
+**[Verified, S1]** The host exposes documented hooks for permission, turn-end,
+failure, and session-end moments. Goals: use documented hooks only; map
+`PermissionRequest` to `needs_approval`; there is **no resolution event**, so
+`approval_resolved` is inferred from `PostToolUse` (execution) or its absence
+and must stay `inferred`; map `Stop` to `turn_ended` (not completion) and
+`StopFailure` / `PostToolUseFailure` to failure. On 2.1.181, `PermissionRequest`
+fires in the interactive TUI but not in headless `-p`, which auto-denies; record
+that as a capability gap. Command hooks block by default; use `async: true`
+where the decision does not need to block. The hook shim must satisfy §9.2
+non-blocking rules.
 
 ## 16.5 Codex adapter
 
-Identify the supported plugin, hook, or lifecycle mechanism for the intended Codex environment; confirm which hooks exist in the selected installation and execution mode; do not assume every Codex interface exposes the same hooks; document unsupported events.
+**[Verified, S1]** Codex CLI 0.155.1 has a documented, Windows-native hooks
+framework (`PermissionRequest`, `Stop`, `SessionEnd`, `SubagentStart/Stop`,
+`Interrupt`), but S1 could not capture the approval hook at runtime because the
+probe was untrusted and `codex exec` blocks by policy. No resolution,
+completion, or failure hook was found. Treat approval as documentation-only
+until a trusted interactive probe runs; use `Stop` for `turn_ended`; document
+the missing resolution/completion/failure signals in the capability
+declaration.
 
 ## 16.6 Gemini CLI adapter
 
-Use supported extension and hook mechanisms; validate availability and reliability; normalize supported events; preserve task/session scope; report capabilities clearly.
+**Not evaluated in S1.** Codex was chosen as the third host because it exposed a
+stronger permission hook. Gemini CLI 0.42.0 documents hooks, but its
+`Notification` hook is observability-only and cannot decide a permission, and
+its docs expose no approval-resolution or failure hook. Re-evaluate if Gemini
+becomes a target host; do not claim its cells from the Codex evidence.
 
 ## 16.7 Reuse rule
 
@@ -1448,6 +1486,12 @@ Planning assumes one developer, a Windows development environment, and access to
 
 **Estimate:** 5–7 working days. Three parallel-able spikes:
 
+**Outcome (2026-10-20): complete.** The evidence was gathered in one parallel
+session, but the original 5–7 day estimate is retained for single-developer
+planning. D-01/D-03/D-04 are decided; Q-05/Q-06/Q-07 are answered; Q-07
+(click-to-focus) is deferred; the matrix and OpenCode fixtures are written. The
+remaining validation limits are recorded in `docs/phase-0.md` §3.
+
 - **S1 — Host signals.** For OpenCode, Claude Code, and one additional host: verify against official documentation and a working experiment which of the §16.1 criteria are met. Produce `docs/host-signal-matrix.md` with [Verified] references and the fixtures for the chosen host. Decide D-01 (first host).
 - **S2 — Process model and storage.** Prototype the Notification Host + shim + named pipe + spool; measure shim overhead and receipt-to-dispatch latency; choose the SQLite binding; verify single-instance behavior and idle exit. Decide D-03/D-04 and ratify or amend §9.2.
 - **S3 — Windows delivery.** Prototype sound, TTS, and toast from the Notification Host as an unpackaged per-user install: toast identity registration, startup latency, AV/EDR behavior, Focus Assist behavior, foreground-window detection (F13), and click-to-focus feasibility (F6-R11). Decide Q-05 and F13 viability.
@@ -1461,7 +1505,7 @@ Planning assumes one developer, a Windows development environment, and access to
 
 ## Milestone 2 — Notification Host and providers
 
-**Estimate:** 5–7 working days. Host process, pipe server, single-instance, spool ingest, SQLite store and migrations, providers (sound, voice, toast) with safe invocation, audio queue, delivery records, `doctor` basics.
+**Estimate:** 6–8 working days (re-baselined +1 day for the production native ACL helper and resident provider workers). Host process, pipe server, single-instance, spool ingest, SQLite store and migrations, providers (sound, voice, toast) with safe invocation, audio queue, delivery records, `doctor` basics.
 **Exit:** providers fail independently; hostile-name tests pass; crash/restart tests pass.
 
 ## Milestone 3 — First adapter
@@ -1471,7 +1515,7 @@ Planning assumes one developer, a Windows development environment, and access to
 
 ## Milestone 4 — Attention policy, CLI, and history
 
-**Estimate:** 5–7 working days. Quiet hours (incl. DST); rate limiting and coalescing; turn-end grace and min duration; subagent policy; focus awareness (if S3 permits); reminders; privacy modes; `status`, `history`, `preview`, `mute`, `config`, full `doctor`; retention purge; start of dogfooding.
+**Estimate:** 5–7 working days. Quiet hours (incl. DST); rate limiting and coalescing; turn-end grace and min duration; subagent policy; focus awareness for WT/classic console only (Q-06; VS Code unsupported; click-to-focus task deferred); reminders; privacy modes; `status`, `history`, `preview`, `mute`, `config`, full `doctor`; retention purge; start of dogfooding.
 **Exit:** F4–F15 acceptance criteria pass for the supported capabilities.
 
 ## Milestone 5 — Second adapter
@@ -1486,7 +1530,7 @@ Planning assumes one developer, a Windows development environment, and access to
 
 ## Overall estimate
 
-Approximately **32–45 working days** for an initial release with two integrations, subject to the reliability of host APIs and the S1–S3 outcomes. v1.0's 17–26 day estimate did not include process-model and Windows-delivery feasibility, hardening, install/uninstall logic, or dogfooding.
+Approximately **33–46 working days** for an initial release with two integrations, subject to the reliability of host APIs and the S1–S3 outcomes. This is the re-baselined total: M2 grew by one day for the ACL helper and resident provider workers; the other milestone estimates are unchanged. Phase 0 and Phase 1 are complete, leaving approximately **23–32 working days** for M2–M6. v1.0's 17–26 day estimate did not include process-model and Windows-delivery feasibility, hardening, install/uninstall logic, or dogfooding.
 
 ---
 
@@ -1552,10 +1596,10 @@ The MVP is ready for initial release when:
 
 | ID | Decision | Status |
 |---|---|---|
-| D-01 | First integration chosen by the §16.1 scorecard from S1 | Pending S1 |
+| D-01 | First integration: **OpenCode v2.0.32**, 5/5 authoritative signals (approval, resolution, turn boundary, completion, failure) in S1. Claude Code 2.1.181 scored 4/5 (no resolution event); Codex CLI 0.155.1 scored 2/5 (approval docs only, no resolution/completion/failure). The adapter must use runtime names `permission.asked`, `permission.replied`, and `session.execution.succeeded\|failed\|interrupted`; documented `session.idle` did not fire. | Decided (S1) |
 | D-02 | Add `turn_ended` (inferred) as a first-class event and notification; never claims success | Decided |
-| D-03 | Process model: headless Notification Host + shim/in-process adapters, named-pipe transport, spool fallback | Proposed (S2) |
-| D-04 | Single-writer SQLite owned by Notification Host; adapters never open the DB | Proposed (S2) |
+| D-03 | Process model: headless Notification Host + shim/in-process adapters; pipe `\\.\pipe\agent-attention-u-<sid8>`; exclusive pipe creation; DACL hardened to SYSTEM + current user before readiness via a bundled native helper; one bounded retry phase; atomic per-event spool with per-session `sequence`; idle exit after no client/session for `session-live-ms` + `idle-ms`. In-process embedding not selected. | Decided (S2) |
+| D-04 | SQLite binding: built-in `node:sqlite` (`DatabaseSync`) on Node.js 24 LTS (tested 24.20.0, bundled SQLite 3.53.4); Notification Host is the single writer and adapters never open the DB. `better-sqlite3@12.4.1` rejected: functionally equivalent via its prebuilt binary, but adds a postinstall native download that fails under `--ignore-scripts` and cannot compile on a host without the MSVC C++ workload. | Decided (S2) |
 | D-05 | Preferences only in `config.json` (`%APPDATA%`); state in `%LOCALAPPDATA%`; no preferences table | Decided |
 | D-06 | Zod for validation; JSON Schema generated | Decided |
 | D-07 | MVP activity surface is the CLI; host-native panels optional | Decided |
@@ -1575,19 +1619,19 @@ The MVP is ready for initial release when:
 
 | ID | Question | Resolves in |
 |---|---|---|
-| Q-01 | Which host exposes the most reliable lifecycle signals? | S1 |
-| Q-02 | Can the first host distinguish blocking questions from plain text? | S1 |
-| Q-03 | Does the host expose task-level, session-level, or both completion scopes? | S1 |
-| Q-04 | Can the core and shim run natively within each host's runtime (Node/Bun version, module loading)? | S1/S2 |
-| Q-05 | Which audio/TTS/toast implementation meets the §10 selection criteria without AV/EDR or latency problems? | S3 |
-| Q-06 | Is foreground-window detection reliable enough for F13? | S3 |
-| Q-07 | Is click-to-focus feasible without sending input to the agent? | S3 |
-| Q-08 | Which host event identifiers are stable enough for persistent deduplication? | S1 |
-| Q-09 | How should stale sessions be reconciled after host or plugin restarts for hosts without liveness signals? | S1/S2 |
-| Q-10 | Packaging and versioning per host (npm vs host-native plugin formats)? | S1, M3 |
+| Q-01 | Which host exposes the most reliable lifecycle signals? **Answered:** OpenCode (5/5 at runtime; 260/260 unique event IDs; durable `seq`; child `parentID`). | S1 (answered) |
+| Q-02 | Can the first host distinguish blocking questions from plain text? **Answered:** yes for typed permission requests; the dedicated question tool was not exercised and remains capability-gated. | S1 (answered) |
+| Q-03 | Does the host expose task-level, session-level, or both completion scopes? **Answered:** session-level only for evaluated hosts; no task scope. | S1 (answered) |
+| Q-04 | Can the core and shim run natively within each host's runtime (Node/Bun version, module loading)? **Answered for OpenCode:** the TypeScript plugin loaded and ran under the installed v2.0.32 runtime; the host shim uses Node 24.20.0. Other host runtimes are adapter-specific and will be validated at their Phase 5 install. | S1/S2 (answered for first host) |
+| Q-05 | Which audio/TTS/toast implementation meets the §10 selection criteria without AV/EDR or latency problems? **Answered:** MCI/koffi sound + fixed PowerShell fallback; fixed SAPI TTS over stdin with a resident worker; per-user AUMID + WinRT toast with a fixed PowerShell sender. Defender clean; third-party EDR and a second Windows build remain residual validation. | S3 (answered) |
+| Q-06 | Is foreground-window detection reliable enough for F13? **Answered:** window/process detection is reliable; session attribution is reliable only where the session can supply its own HWND (Windows Terminal via `GetConsoleWindow()` + `GW_OWNER`, classic console). VS Code is unsupported; panes/tabs are window-scoped. | S3 (answered) |
+| Q-07 | Is click-to-focus feasible without sending input to the agent? **Answered:** window-management-only routes deliver no input, and attach-to-foreground succeeded 4/4 as a fallback, but a real toast activation was not verified. Keep click-to-focus out of MVP; do not implement task 4.9 until re-probed. | S3 (answered, deferred) |
+| Q-08 | Which host event identifiers are stable enough for persistent deduplication? **Answered:** OpenCode `evt_` IDs + per-session `durable.seq`; Claude Code session/prompt/tool IDs without a sequence; Codex session/turn/agent IDs without a sequence. Use `eventId` + sequence where present. | S1 (answered) |
+| Q-09 | How should stale sessions be reconciled after host or plugin restarts for hosts without liveness signals? **Answered:** the host is the single writer; on restart it re-reads persisted session state and marks open sessions `unknown`/stale per the §13 rules, ingests the spool idempotently by `eventId`, and never infers completion from a lost connection. OpenCode can backfill with `session.log?after=<seq>&follow=true`. | S1/S2 (answered) |
+| Q-10 | Packaging and versioning per host (npm vs host-native plugin formats)? **Deferred to M3:** OpenCode's plugin install path is known, but package naming/versioning and the per-host install format require the Phase 3 install task. Not a Phase 2 gate. | Deferred (M3) |
 | Q-11 | Is `minTurnSeconds=15` and `graceMs=1000` the right default? | Dogfood (M4) |
 | Q-12 | Should reminders default to enabled? | Dogfood (M4/M5) |
-| Q-13 | Which host-native surfaces can expose activity history without a dashboard? | S1, optional |
+| Q-13 | Which host-native surfaces can expose activity history without a dashboard? **Deferred (optional):** not required for MVP; the CLI is the activity surface (D-07). Revisit after dogfooding. | Deferred (optional) |
 
 Open questions MUST be closed (answered, with a decision ID, or explicitly deferred with rationale) before the Definition of Done is evaluated.
 
@@ -1598,6 +1642,7 @@ Open questions MUST be closed (answered, with a decision ID, or explicitly defer
 | Version | Date | Summary |
 |---|---|---|
 | 1.0 | 2026-10-19 | Initial MVP specification |
+| 2.2 | 2026-10-21 | Closed Phase 0 (M0): decided D-01 (OpenCode v2.0.32, 5/5), D-03 (host/pipe/spool with ACL hardening and bounded retry), D-04 (`node:sqlite`); answered Q-05 (MCI/koffi sound + SoundPlayer fallback, fixed SAPI stdin TTS, per-user AUMID + WinRT toast), Q-06 (WT/classic console only; VS Code unsupported), Q-07 (click-to-focus deferred); answered Q-01/Q-02/Q-03/Q-04/Q-08/Q-09; deferred Q-10 (M3) and Q-13 (optional); updated §9.2, §10, §16.3–§16.6, F13-R5, §20 estimates (33–46 total; 23–32 remaining), and the host matrix/fixtures. |
 | 2.1 | 2026-10-20 | Replaced pnpm with npm workspaces (D-18): updated §10 tech stack, §11 repository structure (removed `pnpm-workspace.yaml`, added `package-lock.json`), added dependency-hygiene and CI requirements, and decision D-18. |
 | 2.0 | 2026-10-20 | Made source of truth. Added: document governance and status tags; `turn_ended`, `approval_resolved`, `resumed`, `session_ended` events; failure notification (F9); turn-ended notification (F10); CLI (F11); audio queue/coalescing/rate limiting (F12); focus awareness (F13); reminders (F14); privacy modes (F15). Revised: state machine (idle, ended, resumable terminal states, ordering, staleness, subagents, task scope); process model (Notification Host, single-writer storage, shim, spool); configuration (single source, v2 schema, resolution rules, voice and per-channel settings, quiet-hour channel flags, DST behavior); deduplication (explicit fingerprint priority, null handling, atomic claim before state mutation); persistence (delivery records, pending requests, dedupe table, migrations, no preferences table); security (injection prevention, safe-name rules, spoofing risk, install without admin); testing (fixtures-first, hostile inputs, restart/storm scenarios); metrics (added precision and outcome signals); milestones (added feasibility spikes; re-baselined to 32–45 days); WSL/remote declared out of scope; first-host selection by scorecard; resolved repository overlap between `notifications` and `platform-windows`; removed copied example data ("Pocket"). |
 

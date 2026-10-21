@@ -1,10 +1,10 @@
 # Architecture
 
-**Status:** Phase 1 (contract + pure core) implemented and verified. The process
-model, storage binding, and Windows delivery mechanism remain **undecided**
-until Phase 0 spikes close D-03/D-04/Q-05. This document records the
-implemented core shape and the boundaries the later phases must preserve.
-Source of truth: `PRD.md` §9, §10, §11, §14, §15.
+**Status:** Phase 1 (contract + pure core) implemented and verified. Phase 0
+decided the first host (OpenCode, D-01), the process model (D-03), the SQLite
+binding (D-04), and the Windows delivery mechanisms (Q-05/Q-06/Q-07). This
+document records the implemented core shape and the boundaries the later phases
+must preserve. Source of truth: `PRD.md` §9, §10, §11, §14, §15.
 
 ## 1. Design boundaries
 
@@ -19,8 +19,9 @@ Source of truth: `PRD.md` §9, §10, §11, §14, §15.
    notification policy or wording.
 4. **No free text crosses the contract.** Events carry enumerated fields and
    safe names. Templates produce all display and speech text.
-5. **One writer for state.** Phase 2 gives the host a single SQLite writer;
-   the core never opens the database.
+5. **One writer for state.** Phase 2 gives the host a single SQLite writer,
+   backed by built-in `node:sqlite` (`DatabaseSync`, Node ≥24.20.0, WAL,
+   explicit busy timeout); the core never opens the database.
 6. **Capability honesty is enforced.** The pipeline rejects an event the
    adapter declared `unsupported`, an `authoritative` event for an `inferred`
    capability, and an `authoritative` `turn_ended`.
@@ -126,7 +127,10 @@ Key invariants:
   request even when late; they never notify.
 - **Timers are data.** `grace`, `stale`, and `reminder` instructions are
   returned to the host. The core never schedules or fires them.
-- **Focus is absent.** Q-06 is open; no foreground-window check is invented.
+- **Focus is host-supplied.** The core never inspects windows. Q-06 decided a
+  per-host capability gate: the host resolves the session HWND for Windows
+  Terminal / classic console; VS Code is unsupported. The suppressor is a Phase
+  4 task, not part of this Phase 1 core.
 - **Ended-session reuse is not decided.** The host lifecycle must choose
   reject-vs-reuse before persistence lands (PRD §13.2 last row).
 
@@ -138,17 +142,21 @@ host signal -> adapter -> shim -> pipe -> host -> core pipeline -> providers
 ```
 
 The left half is **not implemented**. Phase 1 covers everything from
-`core pipeline` inward. The process model, pipe name, spool format, and
-single-instance mechanism are pending S2/D-03.
+`core pipeline` inward. The process model is decided (D-03): headless host with
+exclusive named-pipe creation, DACL hardening before readiness, bounded retry
+polling, atomic per-event spool, and per-session `sequence` for ordering.
 
-## 8. Paths (pending)
+## 8. Paths (decided except channel-specific assets)
 
 - Config: `%APPDATA%\AgentAttention\config.json` (D-05)
 - Data: `%LOCALAPPDATA%\AgentAttention\` (database, spool, logs, manifests)
-- Pipe: `\\.\pipe\agent-attention-<user>` (D-03)
+- Pipe: `\\.\pipe\agent-attention-u-<sid8>` (D-03)
+- Spool: `%LOCALAPPDATA%\AgentAttention\spool\` with atomic per-event files
+- Toast identity: `HKCU\Software\Classes\AppUserModelId\AgentAttention.<...>` plus
+  a Start Menu shortcut carrying the same AUMID (Q-05)
 
-These are planning defaults, not ratified decisions. Do not ship install
-scripts against them until Phase 0 closes.
+The `sid8` token is a short hash of the account SID, not the username. Phase 2
+may add channel-specific asset paths without reopening D-03.
 
 ## 9. Verification
 
@@ -172,9 +180,9 @@ the Phase 1 delivery report is [`phase-1.md`](phase-1.md).
 
 | Decision | Owner | Consequence if changed |
 |---|---|---|
-| D-01 first host adapter | Phase 0 S1 | Adapter package/fixtures only; core unaffected |
-| D-03 process model | Phase 0 S2 | Phase 2 host/shim/pipe wiring |
-| D-04 SQLite binding | Phase 0 S2 | `packages/storage` implementation |
-| Q-05 audio/TTS/toast mechanism | Phase 0 S3 | `platform-windows` providers |
-| Q-06/Q-07 focus detection/click-to-focus | Phase 0 S3 | F13 suppressor and install flow |
-| D-05 config/data paths | Phase 0/2 | Installer and docs |
+| D-01 first host adapter | **Decided: OpenCode v2.0.32** | Adapter package/fixtures only; core unaffected |
+| D-03 process model | **Decided:** headless host, per-user pipe, DACL-before-ready, bounded retry, atomic spool | Phase 2 host/shim/pipe wiring |
+| D-04 SQLite binding | **Decided:** built-in `node:sqlite` (`DatabaseSync`), Node ≥24.20.0 | `packages/storage` implementation; isolate behind a storage adapter |
+| Q-05 audio/TTS/toast mechanism | **Decided:** MCI/koffi + SoundPlayer fallback; fixed SAPI stdin; per-user AUMID + WinRT toast | `platform-windows` providers |
+| Q-06/Q-07 focus detection/click-to-focus | **Q-06 decided** for WT/classic console, VS Code unsupported; **Q-07 deferred** until a real toast activation probe | F13 suppressor and install flow |
+| D-05 config/data paths | **Decided** (§8) | Installer and docs |

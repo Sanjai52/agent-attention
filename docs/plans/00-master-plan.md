@@ -6,7 +6,7 @@
 
 **Architecture:** Thin host adapters normalize host lifecycle signals into the shared `AgentEvent` contract; a pure TypeScript core owns validation, ordering, state, dedupe, policy, and timing; a headless Notification Host is the single SQLite writer and dispatches through isolated sound/voice/toast providers over a current-user named pipe; a CLI is the only activity surface.
 
-**Tech Stack:** TypeScript, Node.js (version range pinned in S2), npm workspaces, Vitest, tsup, Zod, SQLite (binding chosen in S2), Windows named pipes, Windows sound/TTS/toast (mechanism chosen in S3).
+**Tech Stack:** TypeScript, Node.js 24 LTS (tested 24.20.0; `>=24.20.0 <25`), npm workspaces, Vitest, tsup, Zod, built-in `node:sqlite` (D-04), Windows named pipes (D-03), MCI/koffi sound with SoundPlayer fallback, fixed SAPI TTS over stdin, per-user AUMID + WinRT toast (Q-05).
 
 **Spec:** `PRD.md` (source of truth). If a plan and the PRD disagree, the PRD wins; fix the plan in the same change and update PRD §24.
 
@@ -42,7 +42,7 @@ Copied from PRD; every task inherits these.
 | 5 — Second adapter | `phase-5-second-adapter` | `06-phase-5-second-adapter.md` | M5 | Second adapter reuses the core with no core changes beyond contract-level fixes |
 | 6 — Hardening & release | `phase-6-hardening-release` | `07-phase-6-hardening-release.md` | M6 | PRD §21.1 Definition of Done satisfied on a clean Windows profile |
 
-Phase 0 must finish before Phase 1 (the pipeline's shape depends on S2's process-model outcome). Phases 1→2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
+Phase 0 is complete; Phase 1 is complete. Phase 2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
 
 **Execution exception:** Phase 1 (contract + pure core) has no host dependency, so it may proceed in parallel with Phase 0 evidence gathering. No adapter work (Phase 3+) starts until Phase 0 closes D-01. If S2 changes the process model mid-flight, only Phase 2 wiring is reworked, not the pure core.
 
@@ -69,7 +69,7 @@ Per-task reviewer subagents are not part of this workflow. Reviews are a phase-b
 | D-01 first host | S1 scorecard (0.5) | Phase 3 |
 | D-03 process model, D-04 SQLite binding | S2 (0.6, 0.7) | Phase 1 interfaces, Phase 2 |
 | Q-05 audio/TTS/toast mechanism | S3 (0.8–0.12) | Phase 2 providers |
-| Q-06/Q-07 focus & click-to-focus; F13 viability | S3 (0.11) | F13 tasks in Phases 2 and 4 |
+| Q-06/Q-07 focus & click-to-focus; F13 viability | **S3 (0.11): Q-06 answered (WT/classic console only); Q-07 deferred** | F13 tasks in Phases 2 and 4; task 4.9 cut until re-probed |
 | Q-04 runtime compatibility | S1/S2 | Phase 3 packaging |
 | Q-08 stable IDs | S1 | Phase 1 fingerprint assumptions, Phase 3 fixtures |
 
@@ -124,7 +124,7 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 
 ## Progress
 
-- [ ] Phase 0 — Feasibility spikes (Task 0.1 done; parked — see [`../phase-0.md`](../phase-0.md))
+- [x] Phase 0 — Feasibility spikes (report: [`../phase-0.md`](../phase-0.md); branch kept after merge)
 - [x] Phase 1 — Contract & core (report: [`../phase-1.md`](../phase-1.md))
 - [ ] Phase 2 — Host & providers
 - [ ] Phase 3 — First adapter

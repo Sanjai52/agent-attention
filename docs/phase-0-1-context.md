@@ -15,135 +15,83 @@ Deep reports: [`phase-0.md`](phase-0.md) (spike status) and
 
 | Phase | Status | Meaning |
 |---|---|---|
-| Phase 0 — feasibility spikes | **PARTIAL / IN PROGRESS** | Task 0.1 and Task 0.2 Step 1 (OpenCode official docs) are done. OpenCode is 10 `[Verified]` / 1 `[Assumption]`; the S1 probe and S2/S3 are pending. No gate decision has been made. |
+| Phase 0 — feasibility spikes | **COMPLETE; merge waits for approval** | D-01/D-03/D-04 decided; Q-05/Q-06/Q-07 answered; OpenCode fixtures frozen; schedule re-baselined. Full report: [`phase-0.md`](phase-0.md). |
 | Phase 1 — contract & core | **COMPLETE and MERGED** | Contract, config, pure core, pipeline, replay harness, docs. `npm run ci` green. PR #1 merged as `92bae16`. |
-| Phase 2 — host & providers | **Blocked** | Needs D-03/D-04/Q-05 from Phase 0; Q-06/Q-07 gate the focus task. The master plan forbids implementing around open gates. |
-| Phase 3 — first adapter | **Blocked** | Requires D-01 (first host) and Q-08 (stable IDs) from Phase 0. |
+| Phase 2 — host & providers | **READY** | Phase 0 closed D-03/D-04/Q-05; Q-06 gates only the focus task. Cut from updated `main` after Phase 0 merges. |
+| Phase 3 — first adapter | **Blocked on Phase 2** | D-01 selects OpenCode; Q-08 answered. The adapter contract can be designed now, but live wiring needs the Phase 2 host/provider layer. |
 | Phase 4 — policy, CLI, history | Not started | Depends on Phase 2. |
-| Phase 5 — second adapter | Not started | Depends on Phase 4. |
+| Phase 5 — second adapter | Not started | Depends on Phase 4; Claude Code is the likely second host (4/5). |
 | Phase 6 — hardening & release | Not started | Depends on all prior phases. |
 
 ```text
 main (92bae16)                  <- Phase 1 merged (PR #1)
- └─ phase-0-feasibility-spikes  <- current branch, 4 ahead / 0 behind
-    eac4ff5 docs(s1): OpenCode documentation evidence
+ └─ phase-0-feasibility-spikes  <- current branch, 8 probe merges
+    7be5303 merge: s2 process model probe
+    797e2c0 merge: s3 focus probe
+    948aced merge: s3 toast probe
+    0f05b28 merge: opencode runtime signal probe
+    30c9f40 merge: claude code signal probe
+    6706683 merge: s3 audio and tts probes
+    eb9edcc merge: codex signal probe
+    ebf231e merge: s2 sqlite probe
 ```
 
-Phase 1 is merged. The Phase 0 branch remains unmerged because its exit gate
-has not been met.
+Phase 1 is merged. The Phase 0 branch is complete but remains unmerged until the
+user verifies the evidence and approves the merge.
 
 ## 2. Coding-agent inspection status (direct answer)
 
-**OpenCode documentation inspection is complete; no capture session has run.
-Claude Code, Codex, and Gemini CLI have not been inspected.**
+**All three evaluated hosts were inspected at runtime; Gemini CLI was not
+evaluated.** OpenCode, Claude Code, and Codex CLI are in the matrix. The
+OpenCode column is complete and selected; Claude Code is 4/5; Codex is 2/5 with
+the approval runtime capture explicitly blocked.
 
-Phase 0 S1 planned to inspect four candidate coding agents against the PRD
-§16.1 criteria. Task 0.2 Step 1 collected official OpenCode documentation and
-recorded 11 evidence records (`S1-01` … `S1-11`). The probe plugin, capture
-sessions, negative tests, and the other host columns remain outstanding.
-
-| Candidate host | Planned task | Docs collected | Probe built | Capture sessions | Negative tests | Matrix cells verified | Status |
+| Candidate host | Planned task | Docs | Probe | Capture sessions | Negative test | Matrix cells | Status |
 |---|---|---|---|---|---|---|---|
-| OpenCode | 0.2 | Yes | None | None | None | **10 / 11** (1 `[Assumption]`) | Docs done; probe pending |
-| Claude Code | 0.3 | None | None | None | None | **0 / 11** | Not inspected |
-| Codex | 0.4 candidate | None | None | None | None | **0 / 11** | Not inspected |
-| Gemini CLI | 0.4 candidate | None | None | None | None | **0 / 11** | Not inspected |
+| OpenCode v2.0.32 | 0.2 | Yes | Yes | 7 scenarios | Pass | 11/11 filled, 5/5 scored | **D-01 selected** |
+| Claude Code 2.1.181 | 0.3 | Yes | Yes | TUI hooks + permission | Pass | 11/11 filled, 4/5 scored | Second-host candidate |
+| Codex CLI 0.155.1 | 0.4 | Yes | Yes | Turn-end + subagent | Pass | 11/11 filled, 2/5 scored | Approval runtime blocked |
+| Gemini CLI 0.42.0 | 0.4 candidate | Not evaluated | No | No | No | 0/11 | Not evaluated |
 
-The matrix has 11 criteria × 4 hosts = **44 cells**: OpenCode has 10
-`[Verified]`, 1 `[Assumption]` (permission resolution), and the other 33 cells
-are `TBD`.
-
-`Approval signal`, `Resolution signal`, `Blocking input`, `Turn boundary`,
-`Completion`, `Failure`, `Stable IDs / sequence`, `Subagents`, `Non-blocking`,
-`Windows-native`, `Stability`.
-
-What this means concretely:
-
-- **D-01 (first host), D-03 (process model), D-04 (SQLite binding), Q-05
-  (Windows delivery), Q-06/Q-07 (focus), and Q-08 (stable IDs across candidate
-  hosts) are still open.**
-- There are **no recorded host fixtures** for Phase 3 adapters.
-- Phase 1 did **not** inspect or reverse-engineer any coding agent's internals.
-  It was built from the PRD contract only. The pure core has no host dependency,
-  which is why it could proceed without S1.
-
-What does exist:
+D-01 and the Q-01/Q-02/Q-03/Q-08 list are answered in
+[`spikes/s1-results.md`](spikes/s1-results.md). The scorecard is in
+[`host-signal-matrix.md`](host-signal-matrix.md).
 
 | Artifact | Where |
 |---|---|
-| OpenCode evidence records `S1-01` … `S1-11` | `docs/spikes/s1-results.md` |
-| Matrix with the OpenCode column populated | `docs/host-signal-matrix.md` |
-| Richer matrix with criterion questions, evidence standard, negative-test rules | `phase-0-feasibility-spikes` branch |
-| Spike workspace and per-spike READMEs | `spikes/` on the phase-0 branch |
-| Result-record templates | `docs/spikes/s1-results.md`, `s2-results.md`, `s3-results.md` on the phase-0 branch |
-
-Do not cite the PRD's `[Assumption]` tags as inspection results. They remain
-assumptions until the phase-0 evidence log says `[Verified]`.
+| All S1 evidence records | `docs/spikes/s1-results.md` |
+| Matrix and D-01 scorecard | `docs/host-signal-matrix.md` |
+| OpenCode runtime probe | `spikes/s1-host-signals/opencode/` |
+| Claude Code probe | `spikes/s1-host-signals/claude-code/` |
+| Codex probe | `spikes/s1-host-signals/codex/` |
+| Frozen OpenCode fixtures | `tests/fixtures/opencode/` |
+| S2 process/storage evidence | `docs/spikes/s2-results.md`, `spikes/s2-process-model/` |
+| S3 delivery evidence | `docs/spikes/s3-results.md`, `spikes/s3-windows-delivery/` |
 
 ## 3. Phase 0 — what was actually done
 
-Phase 0's goal was to replace blocking assumptions with measured evidence and
-close the feasibility gate (PRD M0). **Task 0.1** and **Task 0.2 Step 1** have
-run.
+Phase 0 replaced the blocking assumptions with measured evidence and closed
+the M0 gate. The full report is [`phase-0.md`](phase-0.md).
 
-### Deliverables on `phase-0-feasibility-spikes`
-
-| Commit | Change |
-|---|---|
-| `bc705ca` | Added spike workspace, evidence logs, and the §16.1 matrix scaffold (8 files, 503 insertions) |
-| `fb08fd5` | Fixed the S1 evidence standard so doc-only evidence and capture evidence are consistent |
-| `7aa5d67` | Synced the Phase 0 branch with merged `main` |
-| `eac4ff5` | Added OpenCode documentation evidence `S1-01` … `S1-11`; populated the OpenCode matrix column |
-
-Files added on that branch:
-
-- `spikes/README.md` — S1/S2/S3 index, time boxes, evidence rules, throwaway-code
-  warning.
-- `spikes/s1-host-signals/README.md` — host-signal question, docs-first method,
-  probe procedure, capture sessions, negative tests.
-- `spikes/s2-process-model/README.md` — pipe/host/shim/spool and latency
-  question, SQLite binding question.
-- `spikes/s3-windows-delivery/README.md` — audio/TTS/toast/focus prototypes and
-  provider selection.
-- `docs/spikes/s1-results.md`, `s2-results.md`, `s3-results.md` — six-field
-  evidence-record templates; S1 now also contains `S1-01` … `S1-11`.
-- `docs/host-signal-matrix.md` — 11 criteria, 4 hosts; OpenCode has 10
-  `[Verified]` and 1 `[Assumption]`; the other 33 cells are `TBD`.
-
-### Evidence standard created
-
-A result is `[Verified]` only with **either** an official documentation URL plus
-access date, **or** a local capture path plus a line reference. Community
-examples and undocumented claims are `[Assumption]` and cannot clear a matrix
-cell. `[Rejected]` records what was disproved. Every record carries date,
-Windows build, tool versions, method, raw observation, conclusion, and tag.
-
-### What was not done
-
-| Spike | Tasks | Status |
+| Task | Deliverable | Status |
 |---|---|---|
-| S1 host signals | 0.2 OpenCode (docs done; probe/captures pending), 0.3 Claude Code, 0.4 Codex/Gemini, 0.5 scorecard/D-01/fixtures | Partial |
-| S2 process + storage | 0.6 process-model prototype, 0.7 SQLite binding | Not started |
-| S3 Windows delivery | 0.8 audio, 0.9 TTS, 0.10 toast/AUMID, 0.11 focus/click-to-focus, 0.12 provider selection | Not started |
-| Exit | 0.13 gate review, PRD §23/§24 updates, re-baseline | Not started |
+| 0.1 | Spike workspace, evidence logs, matrix scaffold | Complete |
+| 0.2 | OpenCode runtime signals, negative test, fixtures | Complete |
+| 0.3 | Claude Code hooks and permission dialog | Complete with OAuth-mock limit |
+| 0.4 | Codex hooks, turn-end, subagent | Complete; approval runtime blocked |
+| 0.5 | Scorecard, D-01, fixtures, Q-01/02/03/08 | Complete |
+| 0.6 | Process model, pipe, shim, spool, crash recovery | Complete; cross-user/post-reboot blocked |
+| 0.7 | SQLite binding comparison | Complete; D-04 |
+| 0.8 | Audio routes and hostile/failure paths | Complete; no-device arm blocked |
+| 0.9 | TTS via stdin, hostile string, cancellation | Complete; zero-voice arm not available |
+| 0.10 | AUMID registration, toast, suppression, cleanup | Complete with DND-on/second-build limits |
+| 0.11 | Focus detection and click-to-focus | Partial; Q-06 answered, Q-07 deferred |
+| 0.12 | Provider selection | Complete; Q-05 |
+| 0.13 | Exit review, PRD updates, re-baseline | Complete |
 
-The phase was parked after Task 0.1 and has been resumed. The branch keeps the
-framework, and the OpenCode documentation pass is already committed.
-
-### Why it was parked
-
-The user redirected effort to product implementation. Phase 1 (contract + pure
-core) has no host dependency, so the master plan records an **execution
-exception**: Phase 1 may proceed while Phase 0 evidence is gathered. The
-exception does **not** apply to adapters: Phase 3 cannot start until D-01 closes.
-
-### Impact if Phase 0 stays open
-
-- Phase 2 cannot start under the master plan's gate rule: D-03/D-04/Q-05 must
-  be decided before host/process/storage/provider implementation.
-- Phase 3 adapter work would be guesswork and may target the wrong host.
-- F13 focus features cannot be implemented honestly (Q-06/Q-07).
-- The Windows delivery guarantee (Q-05) remains unproven.
+`npm run ci` is the phase gate; the final run is recorded in the Phase 0 merge
+review. The fixtures are sanitized OpenCode JSONL captures with a README and
+expected normalized event lists.
 
 ## 4. Phase 1 — what was finished
 
@@ -219,25 +167,25 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 
 ### Finished
 
+- [x] Phase 0: D-01, D-03, D-04 decided; Q-05, Q-06, Q-07 answered.
+- [x] Phase 0: host matrix, scorecard, OpenCode fixtures, re-baseline.
 - [x] Phase 1 contract, config, pure core, pipeline, replay harness.
 - [x] Phase 1 gate: 310 tests, lint, typecheck, build.
 - [x] Contract and architecture documentation.
 - [x] Phase 0 and Phase 1 status reports.
-- [x] Phase 1 master-plan checkbox.
 
 ### Open
 
-- [ ] Phase 0 OpenCode probe and captures (0.2 Steps 2–6).
-- [ ] Phase 0 Claude Code and third-host inspections (0.3–0.5).
-- [ ] Phase 0 process/storage evidence (0.6–0.7) — D-03/D-04.
-- [ ] Phase 0 Windows delivery evidence (0.8–0.12) — Q-05/Q-06/Q-07.
-- [ ] Phase 0 exit and re-baseline (0.13).
-- [ ] D-01 first host; Q-08 stable IDs.
-- [ ] Phase 2 host/providers (blocked on Phase 0 gates).
-- [ ] Phase 3 adapters (blocked on D-01/Q-08).
-- [ ] `waitingAfterHours` config decision (Phase 4).
-- [ ] Ended-session ID reuse policy (Phase 2).
-- [ ] Focus awareness and click-to-focus (Phase 2/4 after Q-06/Q-07).
+- [ ] Phase 2 host/providers (ready; cut after Phase 0 merge).
+- [ ] Phase 3 OpenCode adapter (after Phase 2).
+- [ ] Phase 4 policy/CLI/history; F13 only for WT/classic console; task 4.9
+  click-to-focus deferred.
+- [ ] Phase 5 second adapter; Claude Code is the likely choice.
+- [ ] Phase 6 hardening/release.
+- [ ] Residual validation, not gates: Claude Code OAuth/model captures, Codex
+  approval runtime, audio no-device, zero-voice TTS, DND-on toast, second
+  Windows build, cross-user pipe connect, post-reboot idle exit, third-party
+  EDR, real toast-activation focus.
 
 ## 6. Rules that govern the next work
 
@@ -296,12 +244,14 @@ git status --short
 
 ## 9. Recommended next actions
 
-1. **Phase 1 is delivered and merged.** PR #1 is closed; `main` is `92bae16`.
-2. **Finish Phase 0 before Phase 2:** check out `phase-0-feasibility-spikes`,
-   complete the OpenCode probe and captures, inspect Claude Code and a third
-   host, then execute S2/S3 (0.6–0.12) and close 0.13. Fill the matrix only with
-   `[Verified]` evidence.
-3. **Do not start Phase 2 while D-03/D-04/Q-05 are open.** The master plan
-   forbids implementing around an undecided gate. Phase 2 is cut from updated
-   `main` after Phase 0 merges.
-4. **Do not start Phase 3** until D-01 is decided and Q-08 is answered.
+1. **Verify the Phase 0 evidence and approve the merge.** The full report is
+   [`phase-0.md`](phase-0.md); the decision register is PRD §23.
+2. **Merge `phase-0-feasibility-spikes` into `main` with `--no-ff`** after
+   approval. Never force-push or squash the probe history.
+3. **Cut `phase-2-host-and-providers` from updated `main`.** Implement the
+   D-03 process model, D-04 storage, and Q-05 providers. Add the production
+   native ACL helper and validate the koffi packaged install.
+4. **Start Phase 3 only after Phase 2.** OpenCode is D-01; use the frozen
+   fixtures and runtime names, not the V2 documentation examples.
+5. **Keep the residual validation list visible** in the phase-2/3 plans. Do not
+   turn blocked items into capability claims.
