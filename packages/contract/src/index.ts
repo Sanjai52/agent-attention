@@ -3,6 +3,7 @@ export * from "./capabilities";
 export * from "./config";
 export * from "./event-schema";
 export * from "./events";
+export * from "./ipc";
 export * from "./safe-name";
 export * from "./summary";
 export * from "./versions";
