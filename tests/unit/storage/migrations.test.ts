@@ -31,11 +31,13 @@ function tempDatabasePath(): string {
 }
 
 function tableNames(db: AgentAttentionDb): string[] {
-  return (db.raw
-    .prepare(
-      "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
-    )
-    .all() as Array<{ name: string }>).map((row) => row.name);
+  return (
+    db.raw
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+      )
+      .all() as Array<{ name: string }>
+  ).map((row) => row.name);
 }
 
 afterEach(() => {
@@ -76,9 +78,9 @@ describe("database bootstrap", () => {
     const second = openDatabase(path);
     expect(getSchemaVersion(second)).toBe(1);
     expect(tableNames(second)).toEqual([...EXPECTED_TABLES]);
-    const count = second.raw
-      .prepare("SELECT COUNT(*) AS count FROM schema_migrations")
-      .get() as { count: number };
+    const count = second.raw.prepare("SELECT COUNT(*) AS count FROM schema_migrations").get() as {
+      count: number;
+    };
     expect(count.count).toBe(1);
     second.close();
   });

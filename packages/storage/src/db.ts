@@ -10,15 +10,11 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import {
-  StorageError,
-  describeError,
-  translateSqliteError,
-} from "./errors";
+import { StorageError, describeError, translateSqliteError } from "./errors";
 import { migrate, type MigrationResult } from "./migrations";
 import type { Migration } from "./schema.sql";
 
-export const DEFAULT_BUSY_TIMEOUT_MS = 2000;
+export const DEFAULT_BUSY_TIMEOUT_MS = 5000;
 
 export interface OpenDatabaseOptions {
   /** Explicit lock wait; `node:sqlite` defaults to 0 (fail immediately). */
@@ -129,10 +125,7 @@ function configure(raw: DatabaseSync, busyTimeoutMs: number): void {
  * A database held under another writer's lock fails with
  * `StorageError.code === "database_locked"`; the file is left untouched.
  */
-export function openDatabase(
-  path: string,
-  options: OpenDatabaseOptions = {},
-): AgentAttentionDb {
+export function openDatabase(path: string, options: OpenDatabaseOptions = {}): AgentAttentionDb {
   const busyTimeoutMs = options.busyTimeoutMs ?? DEFAULT_BUSY_TIMEOUT_MS;
 
   if (!isInMemory(path)) {

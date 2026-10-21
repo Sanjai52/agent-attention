@@ -67,10 +67,7 @@ function validateMigrations(migrations: readonly Migration[]): Migration[] {
       );
     }
     if (seen.has(migration.version)) {
-      throw new StorageError(
-        "invalid_input",
-        `duplicate migration version ${migration.version}`,
-      );
+      throw new StorageError("invalid_input", `duplicate migration version ${migration.version}`);
     }
     seen.add(migration.version);
   }
@@ -96,11 +93,7 @@ function backupPathFor(db: AgentAttentionDb, from: number, requested?: string): 
   return candidate;
 }
 
-function createBackup(
-  db: AgentAttentionDb,
-  from: number,
-  requested?: string,
-): string {
+function createBackup(db: AgentAttentionDb, from: number, requested?: string): string {
   const backupPath = backupPathFor(db, from, requested);
 
   try {
@@ -120,10 +113,7 @@ function createBackup(
  * Apply all pending migrations. Safe to call on a current database; it then
  * performs no writes and reports `from === to`.
  */
-export function migrate(
-  db: AgentAttentionDb,
-  options: MigrateOptions = {},
-): MigrationResult {
+export function migrate(db: AgentAttentionDb, options: MigrateOptions = {}): MigrationResult {
   const migrations = validateMigrations(options.migrations ?? DEFAULT_MIGRATIONS);
   const from = getSchemaVersion(db);
   const target = migrations.at(-1)?.version ?? 0;

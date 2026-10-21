@@ -8,11 +8,7 @@
  */
 
 export type StorageErrorCode =
-  | "database_locked"
-  | "database_error"
-  | "migration_failed"
-  | "schema_too_new"
-  | "invalid_input";
+  "database_locked" | "database_error" | "migration_failed" | "schema_too_new" | "invalid_input";
 
 export interface StorageErrorOptions {
   cause?: unknown;

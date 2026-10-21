@@ -50,6 +50,7 @@ export const MIGRATIONS: readonly Migration[] = Object.freeze([
         last_event_at TEXT NOT NULL,
         last_seen_at TEXT NOT NULL,
         last_verified_at TEXT,
+        last_accepted_sequence INTEGER,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL,
         PRIMARY KEY (adapter_id, session_id)
