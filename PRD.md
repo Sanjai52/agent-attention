@@ -1649,8 +1649,8 @@ The MVP is ready for initial release when:
 | Q-08 | Which host event identifiers are stable enough for persistent deduplication? **Answered:** OpenCode `evt_` IDs + per-session `durable.seq`; Claude Code session/prompt/tool IDs without a sequence; Codex session/turn/agent IDs without a sequence. Use `eventId` + sequence where present. | S1 (answered) |
 | Q-09 | How should stale sessions be reconciled after host or plugin restarts for hosts without liveness signals? **Answered:** the host is the single writer; on restart it re-reads persisted session state and marks open sessions `unknown`/stale per the §13 rules, ingests the spool idempotently by `eventId`, and never infers completion from a lost connection. OpenCode can backfill with `session.log?after=<seq>&follow=true`. | S1/S2 (answered) |
 | Q-10 | Packaging and versioning per host (npm vs host-native plugin formats)? **Deferred to M3:** OpenCode's plugin install path is known, but package naming/versioning and the per-host install format require the Phase 3 install task. Not a Phase 2 gate. | Deferred (M3) |
-| Q-11 | Is `minTurnSeconds=15` and `graceMs=1000` the right default? | Dogfood (M4) |
-| Q-12 | Should reminders default to enabled? | Dogfood (M4/M5) |
+| Q-11 | Is `minTurnSeconds=15` and `graceMs=1000` the right default? **Deferred pending dogfood:** the local dogfood journal has no measured entries yet; retain the current defaults until dogfooding supplies evidence. | Deferred (M4 dogfood pending) |
+| Q-12 | Should reminders default to enabled? **Deferred pending dogfood:** the local dogfood journal has no measured entries yet; retain reminders disabled by default under D-12 until dogfooding supplies evidence. | Deferred (M4/M5 dogfood pending) |
 | Q-13 | Which host-native surfaces can expose activity history without a dashboard? **Deferred (optional):** not required for MVP; the CLI is the activity surface (D-07). Revisit after dogfooding. | Deferred (optional) |
 
 Open questions MUST be closed (answered, with a decision ID, or explicitly deferred with rationale) before the Definition of Done is evaluated.

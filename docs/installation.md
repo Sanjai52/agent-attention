@@ -1,7 +1,8 @@
 # Installation Guide
 
-Status: OpenCode and Claude Code local installation paths are available; clean
-profile and release packaging remain Phase 6 work.
+Status: OpenCode and Claude Code local installation paths are available. Release
+artifacts are produced from tags; clean-profile verification remains a release
+gate. See [`compatibility.md`](compatibility.md) for the supported matrix.
 Source of truth: `PRD.md` §7.1, §18.4.
 
 ## Supported local installation
@@ -26,5 +27,11 @@ Source of truth: `PRD.md` §7.1, §18.4.
    `--config` defaults to the host's configured path; `--state-dir` may be used
    for an isolated profile. Uninstall uses the same host/config options and
    removes only the owned plugin entry.
-8. Clean-profile install/uninstall, packaging, and the final
-   compatibility matrix are Phase 6 release gates.
+8. For a release installation, use the CLI tarball produced by the matching
+   release tag. Do not run the TypeScript source tree as an installed package;
+   published package metadata points to the built `dist/` entrypoints and
+   requires Node `>=24.20.0`.
+9. The OpenCode adapter is installed as the host-native plugin directory from
+   the release bundle. Keep the adapter and OpenCode host within the declared
+   range in [`compatibility.md`](compatibility.md); the adapter capabilities
+   expose that range for the host/version diagnostic path.

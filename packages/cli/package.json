@@ -5,10 +5,18 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "files": [
+    "src",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=24.20.0"
+  },
   "bin": {
     "agent-attention": "./dist/index.js"
   },
   "publishConfig": {
+    "access": "public",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts"
   },
