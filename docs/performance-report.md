@@ -1,6 +1,7 @@
 # Phase 6 performance and storm report
 
-Status: initial evidence captured on the Phase 6 Windows development host.
+Status: initial evidence integrated into `main`; clean-profile and
+release-candidate verification remain pending. Updated 2026-10-22.
 
 ## Scope
 

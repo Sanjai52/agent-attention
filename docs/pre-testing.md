@@ -1,7 +1,7 @@
 # Pre-testing Plan
 
-Status: live scenario execution complete on the approved Windows 11 profile;
-cross-build validation remains open.
+Status: live scenario execution and pre-testing fixes are integrated into
+`main`; cross-build and release-candidate validation remain open.
 Temporary profiles and documented per-user notification registration are used;
 normal agent configuration is restored after testing.
 
@@ -28,17 +28,17 @@ capabilities or mark unsupported behavior as successful.
 
 ## What will be tested
 
-| ID | Area | Expected outcome | Evidence |
-|---|---|---|---|
-| PT-01 | Clean baseline | Version, OS, paths, and current configuration are captured before changes | Transcript |
-| PT-02 | Build/install | The packed or built OpenCode plugin is loadable without admin rights | Commands and config snapshot |
-| PT-03 | OpenCode lifecycle | Start, progress, approval, resolution, completion, failure, interruption, and concurrent sessions match declared capabilities | Host transcript + history |
-| PT-04 | Delivery | Sound, toast, and optional voice behave independently; one provider failure does not stop the others | Screenshots/transcript + history |
-| PT-05 | Policy | Mute, quiet hours, rate limit, coalescing, minimum turn duration, and deduplication match configuration | Config and history output |
-| PT-06 | Persistence | Host restart, spool recovery, stale-session handling, and duplicate replay remain safe | Before/after status/history |
-| PT-07 | Installer safety | Repeated install is idempotent; uninstall removes only owned entries and preserves user edits | File snapshots/checksums |
-| PT-08 | Security | Hostile names remain inert and bounded; no command, XML, or log injection occurs | Sanitized output/transcript |
-| PT-09 | Acceptance | PRD scenarios A–Q are marked pass, fail, blocked, or not applicable with evidence | Acceptance matrix |
+| ID    | Area               | Expected outcome                                                                                                              | Evidence                         |
+| ----- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| PT-01 | Clean baseline     | Version, OS, paths, and current configuration are captured before changes                                                     | Transcript                       |
+| PT-02 | Build/install      | The packed or built OpenCode plugin is loadable without admin rights                                                          | Commands and config snapshot     |
+| PT-03 | OpenCode lifecycle | Start, progress, approval, resolution, completion, failure, interruption, and concurrent sessions match declared capabilities | Host transcript + history        |
+| PT-04 | Delivery           | Sound, toast, and optional voice behave independently; one provider failure does not stop the others                          | Screenshots/transcript + history |
+| PT-05 | Policy             | Mute, quiet hours, rate limit, coalescing, minimum turn duration, and deduplication match configuration                       | Config and history output        |
+| PT-06 | Persistence        | Host restart, spool recovery, stale-session handling, and duplicate replay remain safe                                        | Before/after status/history      |
+| PT-07 | Installer safety   | Repeated install is idempotent; uninstall removes only owned entries and preserves user edits                                 | File snapshots/checksums         |
+| PT-08 | Security           | Hostile names remain inert and bounded; no command, XML, or log injection occurs                                              | Sanitized output/transcript      |
+| PT-09 | Acceptance         | PRD scenarios A–Q are marked pass, fail, blocked, or not applicable with evidence                                             | Acceptance matrix                |
 
 ## Environment preparation
 

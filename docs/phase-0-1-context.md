@@ -13,15 +13,15 @@ Deep reports: [`phase-0.md`](phase-0.md) (spike status) and
 
 ## 1. Status at a glance
 
-| Phase | Status | Meaning |
-|---|---|---|
-| Phase 0 — feasibility spikes | **COMPLETE; merge waits for approval** | D-01/D-03/D-04 decided; Q-05/Q-06/Q-07 answered; OpenCode fixtures frozen; schedule re-baselined. Full report: [`phase-0.md`](phase-0.md). |
-| Phase 1 — contract & core | **COMPLETE and MERGED** | Contract, config, pure core, pipeline, replay harness, docs. `npm run ci` green. PR #1 merged as `92bae16`. |
-| Phase 2 — host & providers | **READY** | Phase 0 closed D-03/D-04/Q-05; Q-06 gates only the focus task. Cut from updated `main` after Phase 0 merges. |
-| Phase 3 — first adapter | **Blocked on Phase 2** | D-01 selects OpenCode; Q-08 answered. The adapter contract can be designed now, but live wiring needs the Phase 2 host/provider layer. |
-| Phase 4 — policy, CLI, history | Not started | Depends on Phase 2. |
-| Phase 5 — second adapter | Not started | Depends on Phase 4; Claude Code is the likely second host (4/5). |
-| Phase 6 — hardening & release | Not started | Depends on all prior phases. |
+| Phase                          | Status                                 | Meaning                                                                                                                                                        |
+| ------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Phase 0 — feasibility spikes   | **COMPLETE; merge waits for approval** | D-01/D-03/D-04 decided; Q-05/Q-06/Q-07 answered; OpenCode fixtures frozen; schedule re-baselined. Full report: [`phase-0.md`](phase-0.md).                     |
+| Phase 1 — contract & core      | **COMPLETE and MERGED**                | Contract, config, pure core, pipeline, replay harness, docs. `npm run ci` green. PR #1 merged as `92bae16`.                                                    |
+| Phase 2 — host & providers     | **READY**                              | Phase 0 closed D-03/D-04/Q-05; Q-06 gates only the focus task. Cut from updated `main` after Phase 0 merges.                                                   |
+| Phase 3 — first adapter        | **Blocked on Phase 2**                 | D-01 selects OpenCode; Q-08 answered. The adapter contract can be designed now, but live wiring needs the Phase 2 host/provider layer.                         |
+| Phase 4 — policy, CLI, history | Not started                            | Depends on Phase 2.                                                                                                                                            |
+| Phase 5 — second adapter       | Not started                            | Depends on Phase 4; Claude Code is the likely second host (4/5).                                                                                               |
+| Phase 6 — hardening & release  | **IN PROGRESS; evidence integrated**   | Security, packaging, acceptance, and capability documentation are integrated; clean-profile, second-build, crash-recovery, and release-candidate gates remain. |
 
 ```text
 main (92bae16)                  <- Phase 1 merged (PR #1)
@@ -46,48 +46,48 @@ evaluated.** OpenCode, Claude Code, and Codex CLI are in the matrix. The
 OpenCode column is complete and selected; Claude Code is 4/5; Codex is 2/5 with
 the approval runtime capture explicitly blocked.
 
-| Candidate host | Planned task | Docs | Probe | Capture sessions | Negative test | Matrix cells | Status |
-|---|---|---|---|---|---|---|---|
-| OpenCode v2.0.32 | 0.2 | Yes | Yes | 7 scenarios | Pass | 11/11 filled, 5/5 scored | **D-01 selected** |
-| Claude Code 2.1.181 | 0.3 | Yes | Yes | TUI hooks + permission | Pass | 11/11 filled, 4/5 scored | Second-host candidate |
-| Codex CLI 0.155.1 | 0.4 | Yes | Yes | Turn-end + subagent | Pass | 11/11 filled, 2/5 scored | Approval runtime blocked |
-| Gemini CLI 0.42.0 | 0.4 candidate | Not evaluated | No | No | No | 0/11 | Not evaluated |
+| Candidate host      | Planned task  | Docs          | Probe | Capture sessions       | Negative test | Matrix cells             | Status                   |
+| ------------------- | ------------- | ------------- | ----- | ---------------------- | ------------- | ------------------------ | ------------------------ |
+| OpenCode v2.0.32    | 0.2           | Yes           | Yes   | 7 scenarios            | Pass          | 11/11 filled, 5/5 scored | **D-01 selected**        |
+| Claude Code 2.1.181 | 0.3           | Yes           | Yes   | TUI hooks + permission | Pass          | 11/11 filled, 4/5 scored | Second-host candidate    |
+| Codex CLI 0.155.1   | 0.4           | Yes           | Yes   | Turn-end + subagent    | Pass          | 11/11 filled, 2/5 scored | Approval runtime blocked |
+| Gemini CLI 0.42.0   | 0.4 candidate | Not evaluated | No    | No                     | No            | 0/11                     | Not evaluated            |
 
 D-01 and the Q-01/Q-02/Q-03/Q-08 list are answered in
 [`spikes/s1-results.md`](spikes/s1-results.md). The scorecard is in
 [`host-signal-matrix.md`](host-signal-matrix.md).
 
-| Artifact | Where |
-|---|---|
-| All S1 evidence records | `docs/spikes/s1-results.md` |
-| Matrix and D-01 scorecard | `docs/host-signal-matrix.md` |
-| OpenCode runtime probe | `spikes/s1-host-signals/opencode/` |
-| Claude Code probe | `spikes/s1-host-signals/claude-code/` |
-| Codex probe | `spikes/s1-host-signals/codex/` |
-| Frozen OpenCode fixtures | `tests/fixtures/opencode/` |
-| S2 process/storage evidence | `docs/spikes/s2-results.md`, `spikes/s2-process-model/` |
-| S3 delivery evidence | `docs/spikes/s3-results.md`, `spikes/s3-windows-delivery/` |
+| Artifact                    | Where                                                      |
+| --------------------------- | ---------------------------------------------------------- |
+| All S1 evidence records     | `docs/spikes/s1-results.md`                                |
+| Matrix and D-01 scorecard   | `docs/host-signal-matrix.md`                               |
+| OpenCode runtime probe      | `spikes/s1-host-signals/opencode/`                         |
+| Claude Code probe           | `spikes/s1-host-signals/claude-code/`                      |
+| Codex probe                 | `spikes/s1-host-signals/codex/`                            |
+| Frozen OpenCode fixtures    | `tests/fixtures/opencode/`                                 |
+| S2 process/storage evidence | `docs/spikes/s2-results.md`, `spikes/s2-process-model/`    |
+| S3 delivery evidence        | `docs/spikes/s3-results.md`, `spikes/s3-windows-delivery/` |
 
 ## 3. Phase 0 — what was actually done
 
 Phase 0 replaced the blocking assumptions with measured evidence and closed
 the M0 gate. The full report is [`phase-0.md`](phase-0.md).
 
-| Task | Deliverable | Status |
-|---|---|---|
-| 0.1 | Spike workspace, evidence logs, matrix scaffold | Complete |
-| 0.2 | OpenCode runtime signals, negative test, fixtures | Complete |
-| 0.3 | Claude Code hooks and permission dialog | Complete with OAuth-mock limit |
-| 0.4 | Codex hooks, turn-end, subagent | Complete; approval runtime blocked |
-| 0.5 | Scorecard, D-01, fixtures, Q-01/02/03/08 | Complete |
-| 0.6 | Process model, pipe, shim, spool, crash recovery | Complete; cross-user/post-reboot blocked |
-| 0.7 | SQLite binding comparison | Complete; D-04 |
-| 0.8 | Audio routes and hostile/failure paths | Complete; no-device arm blocked |
-| 0.9 | TTS via stdin, hostile string, cancellation | Complete; zero-voice arm not available |
-| 0.10 | AUMID registration, toast, suppression, cleanup | Complete with DND-on/second-build limits |
-| 0.11 | Focus detection and click-to-focus | Partial; Q-06 answered, Q-07 deferred |
-| 0.12 | Provider selection | Complete; Q-05 |
-| 0.13 | Exit review, PRD updates, re-baseline | Complete |
+| Task | Deliverable                                       | Status                                   |
+| ---- | ------------------------------------------------- | ---------------------------------------- |
+| 0.1  | Spike workspace, evidence logs, matrix scaffold   | Complete                                 |
+| 0.2  | OpenCode runtime signals, negative test, fixtures | Complete                                 |
+| 0.3  | Claude Code hooks and permission dialog           | Complete with OAuth-mock limit           |
+| 0.4  | Codex hooks, turn-end, subagent                   | Complete; approval runtime blocked       |
+| 0.5  | Scorecard, D-01, fixtures, Q-01/02/03/08          | Complete                                 |
+| 0.6  | Process model, pipe, shim, spool, crash recovery  | Complete; cross-user/post-reboot blocked |
+| 0.7  | SQLite binding comparison                         | Complete; D-04                           |
+| 0.8  | Audio routes and hostile/failure paths            | Complete; no-device arm blocked          |
+| 0.9  | TTS via stdin, hostile string, cancellation       | Complete; zero-voice arm not available   |
+| 0.10 | AUMID registration, toast, suppression, cleanup   | Complete with DND-on/second-build limits |
+| 0.11 | Focus detection and click-to-focus                | Partial; Q-06 answered, Q-07 deferred    |
+| 0.12 | Provider selection                                | Complete; Q-05                           |
+| 0.13 | Exit review, PRD updates, re-baseline             | Complete                                 |
 
 `npm run ci` is the phase gate; the final run is recorded in the Phase 0 merge
 review. The fixtures are sanitized OpenCode JSONL captures with a README and
@@ -111,26 +111,26 @@ Phase 1 delivered the host-independent product core.
 
 ### Task/commit map
 
-| Task | Commit | Result |
-|---|---|---|
-| 1.1 Tooling baseline | `8c0239f` | Purity and dependency gates in CI |
-| 1.2 Event/capability types | `e6a5e0f` | 11 event types, capability declaration |
-| 1.4 Safe names | `cdfcd71` | Control/bidi stripping, 64 code points, voice allowlist |
-| 1.3 Strict validation | `32492dc` | Zod 4 schema, required details, structured issues |
-| 1.5 Config | `aaf9e59` | Defaults, per-key fallback, diagnostics |
-| 1.7 State machine | `eaf9bb1` | `applyEvent`, requests, terminal resume |
-| 1.6 Ordering | `ba144c7` | Sequence/time/receipt/eventId; late closures |
-| 1.8 Tasks/subagents | `5938140` | Scope, `affectsParent`, unknown parents |
-| 1.9 Fingerprints | `e0fb50d` | Three rules, time buckets, adjacent bucket |
-| 1.10 Quiet hours | `6767146` | Cross-midnight, per-channel flags |
-| 1.11 Templates/privacy | `3012b4c` | Controlled wording, discreet mode, speech safety |
-| 1.12 Turn-end | `e5862d2` | Grace, min duration, subagent suppression |
-| 1.13 Rate limit/coalesce | `f34abd5` | 60 s window, priority, 30 s bypass |
-| 1.14 Reminders | `3803b93` | Due times, max reminders |
-| 1.15 Staleness | `5865c2c` | Working/waiting, closed requests, restart reconcile |
-| 1.16 Pipeline | `9b99da0` | Full composition, plans, timers, coalesced summary |
-| 1.17 Fixture replay | `3aa13b3` | Loader, synthetic session, dedupe-across-runs |
-| 1.18 Exit verification | `6c0ab61` + `1151a40` | Docs, coverage audit, volume-independence test |
+| Task                       | Commit                | Result                                                  |
+| -------------------------- | --------------------- | ------------------------------------------------------- |
+| 1.1 Tooling baseline       | `8c0239f`             | Purity and dependency gates in CI                       |
+| 1.2 Event/capability types | `e6a5e0f`             | 11 event types, capability declaration                  |
+| 1.4 Safe names             | `cdfcd71`             | Control/bidi stripping, 64 code points, voice allowlist |
+| 1.3 Strict validation      | `32492dc`             | Zod 4 schema, required details, structured issues       |
+| 1.5 Config                 | `aaf9e59`             | Defaults, per-key fallback, diagnostics                 |
+| 1.7 State machine          | `eaf9bb1`             | `applyEvent`, requests, terminal resume                 |
+| 1.6 Ordering               | `ba144c7`             | Sequence/time/receipt/eventId; late closures            |
+| 1.8 Tasks/subagents        | `5938140`             | Scope, `affectsParent`, unknown parents                 |
+| 1.9 Fingerprints           | `e0fb50d`             | Three rules, time buckets, adjacent bucket              |
+| 1.10 Quiet hours           | `6767146`             | Cross-midnight, per-channel flags                       |
+| 1.11 Templates/privacy     | `3012b4c`             | Controlled wording, discreet mode, speech safety        |
+| 1.12 Turn-end              | `e5862d2`             | Grace, min duration, subagent suppression               |
+| 1.13 Rate limit/coalesce   | `f34abd5`             | 60 s window, priority, 30 s bypass                      |
+| 1.14 Reminders             | `3803b93`             | Due times, max reminders                                |
+| 1.15 Staleness             | `5865c2c`             | Working/waiting, closed requests, restart reconcile     |
+| 1.16 Pipeline              | `9b99da0`             | Full composition, plans, timers, coalesced summary      |
+| 1.17 Fixture replay        | `3aa13b3`             | Loader, synthetic session, dedupe-across-runs           |
+| 1.18 Exit verification     | `6c0ab61` + `1151a40` | Docs, coverage audit, volume-independence test          |
 
 ### Verification
 
@@ -174,20 +174,20 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 - [x] Contract and architecture documentation.
 - [x] Phase 0 and Phase 1 status reports.
 - [x] Phase 2 host, storage, shim/spool, providers, doctor, ACL, and latency
-  smoke; final gate 535 tests / 38 files. Report: [`phase-2.md`](phase-2.md).
+      smoke; final gate 535 tests / 38 files. Report: [`phase-2.md`](phase-2.md).
 - [x] Phase 2 production end-to-end smoke through `dist/main.js`.
 
 ### Open
 
 - [ ] Phase 3 OpenCode adapter (after Phase 2).
 - [ ] Phase 4 policy/CLI/history; F13 only for WT/classic console; task 4.9
-  click-to-focus deferred.
+      click-to-focus deferred.
 - [ ] Phase 5 second adapter; Claude Code is the likely choice.
-- [ ] Phase 6 hardening/release.
+- [~] Phase 6 hardening/release evidence is integrated; release certification remains open.
 - [ ] Residual validation, not gates: Claude Code OAuth/model captures, Codex
-  approval runtime, audio no-device, zero-voice TTS, DND-on toast, second
-  Windows build, cross-user pipe connect, post-reboot idle exit, third-party
-  EDR, real toast-activation focus.
+      approval runtime, audio no-device, zero-voice TTS, DND-on toast, second
+      Windows build, cross-user pipe connect, post-reboot idle exit, third-party
+      EDR, real toast-activation focus.
 
 ## 6. Rules that govern the next work
 
@@ -210,21 +210,21 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 
 ## 7. Where to look
 
-| Need | File |
-|---|---|
-| Product requirements | [`../PRD.md`](../PRD.md) |
-| Phase map, gates, branch/PR process | [`plans/00-master-plan.md`](plans/00-master-plan.md) |
-| Phase 0 plan | [`plans/01-phase-0-feasibility-spikes.md`](plans/01-phase-0-feasibility-spikes.md) |
-| Phase 1 plan | [`plans/02-phase-1-contract-and-core.md`](plans/02-phase-1-contract-and-core.md) |
-| Phase 0 status report | [`phase-0.md`](phase-0.md) |
-| Phase 1 delivery report | [`phase-1.md`](phase-1.md) |
-| Host inspection matrix | [`host-signal-matrix.md`](host-signal-matrix.md) |
-| Event/config contract | [`event-contract.md`](event-contract.md) |
-| Core architecture | [`architecture.md`](architecture.md) |
-| Pipeline entry point | `../packages/core/src/pipeline/process-event.ts` |
-| Contract entry point | `../packages/contract/src/index.ts` |
-| Tests | `../tests/unit/` |
-| Phase 0 branch artifacts | `phase-0-feasibility-spikes`: `spikes/`, `docs/spikes/`, richer matrix |
+| Need                                | File                                                                               |
+| ----------------------------------- | ---------------------------------------------------------------------------------- |
+| Product requirements                | [`../PRD.md`](../PRD.md)                                                           |
+| Phase map, gates, branch/PR process | [`plans/00-master-plan.md`](plans/00-master-plan.md)                               |
+| Phase 0 plan                        | [`plans/01-phase-0-feasibility-spikes.md`](plans/01-phase-0-feasibility-spikes.md) |
+| Phase 1 plan                        | [`plans/02-phase-1-contract-and-core.md`](plans/02-phase-1-contract-and-core.md)   |
+| Phase 0 status report               | [`phase-0.md`](phase-0.md)                                                         |
+| Phase 1 delivery report             | [`phase-1.md`](phase-1.md)                                                         |
+| Host inspection matrix              | [`host-signal-matrix.md`](host-signal-matrix.md)                                   |
+| Event/config contract               | [`event-contract.md`](event-contract.md)                                           |
+| Core architecture                   | [`architecture.md`](architecture.md)                                               |
+| Pipeline entry point                | `../packages/core/src/pipeline/process-event.ts`                                   |
+| Contract entry point                | `../packages/contract/src/index.ts`                                                |
+| Tests                               | `../tests/unit/`                                                                   |
+| Phase 0 branch artifacts            | `phase-0-feasibility-spikes`: `spikes/`, `docs/spikes/`, richer matrix             |
 
 ## 8. Commands
 

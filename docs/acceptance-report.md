@@ -1,8 +1,8 @@
 # Phase 6 acceptance report
 
-Status: **acceptance sweep recorded; release sign-off pending**  
-Branch: `phase-6-hardening-release`  
-Date: 2026-10-21  
+Status: **acceptance sweep integrated; release sign-off pending**
+Branch: `main` (Phase 6 merged)
+Date: 2026-10-22
 Scope: PRD §19.2 scenarios A–Q and PRD §21.1 Definition of Done
 
 ## Evidence
@@ -68,4 +68,7 @@ Manual or owned by other Phase 6 workstreams: Windows provider failure isolation
 
 ## Blockers
 
-This report is not release approval. The remaining blockers are the open Phase 6 workstreams listed in the DoD table, plus the manual Q scenario. No Phase 6 merge to `main` should occur until those blockers are closed and explicit approval is obtained.
+This report is not release approval. Phase 6 hardening is integrated into
+`main`; the remaining blockers are the open evidence items listed in the DoD
+table, plus the manual Q scenario. Release approval still requires explicit
+owner sign-off after those gates are closed.

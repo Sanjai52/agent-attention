@@ -1,6 +1,6 @@
 # Agent Attention Capability Status
 
-Status: verified MVP capability map, 2026-10-21.
+Status: verified MVP capability map, 2026-10-22.
 
 This document separates observed behavior from fixture-only coverage and future
 work. The PRD remains the source of truth; unsupported behavior must not be

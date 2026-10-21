@@ -32,15 +32,15 @@ Copied from PRD; every task inherits these.
 
 ## Phase Map
 
-| Phase | Branch | Plan file | PRD milestone | Exit gate |
-|---|---|---|---|---|
-| 0 — Feasibility spikes | `phase-0-feasibility-spikes` | `01-phase-0-feasibility-spikes.md` | M0 | D-01/D-03/D-04 decided, Q-05/Q-06/Q-07 answered, host-signal matrix written, schedule re-baselined |
-| 1 — Contract & core | `phase-1-contract-and-core` | `02-phase-1-contract-and-core.md` | M1 | All PRD §19.1 unit areas pass; synthetic fixture streams produce correct states without duplicate processing |
-| 2 — Host & providers | `phase-2-host-and-providers` | `03-phase-2-host-and-providers.md` | M2 | Providers fail independently; hostile-name tests pass; crash/restart/single-instance tests pass |
-| 3 — First adapter | `phase-3-first-adapter` | `04-phase-3-first-adapter.md` | M3 | Adapter detects its declared events on recorded fixtures and live smoke; capability declaration matches measured behavior |
-| 4 — Policy, CLI, history | `phase-4-policy-cli-history` | `05-phase-4-policy-cli-history.md` | M4 | F4–F15 acceptance criteria pass for supported capabilities; dogfooding starts |
-| 5 — Second adapter | `phase-5-second-adapter` | `06-phase-5-second-adapter.md` | M5 | Second adapter reuses the core with no core changes beyond contract-level fixes |
-| 6 — Hardening & release | `phase-6-hardening-release` | `07-phase-6-hardening-release.md` | M6 | PRD §21.1 Definition of Done satisfied on a clean Windows profile |
+| Phase                    | Branch                       | Plan file                          | PRD milestone | Exit gate                                                                                                                 |
+| ------------------------ | ---------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 0 — Feasibility spikes   | `phase-0-feasibility-spikes` | `01-phase-0-feasibility-spikes.md` | M0            | D-01/D-03/D-04 decided, Q-05/Q-06/Q-07 answered, host-signal matrix written, schedule re-baselined                        |
+| 1 — Contract & core      | `phase-1-contract-and-core`  | `02-phase-1-contract-and-core.md`  | M1            | All PRD §19.1 unit areas pass; synthetic fixture streams produce correct states without duplicate processing              |
+| 2 — Host & providers     | `phase-2-host-and-providers` | `03-phase-2-host-and-providers.md` | M2            | Providers fail independently; hostile-name tests pass; crash/restart/single-instance tests pass                           |
+| 3 — First adapter        | `phase-3-first-adapter`      | `04-phase-3-first-adapter.md`      | M3            | Adapter detects its declared events on recorded fixtures and live smoke; capability declaration matches measured behavior |
+| 4 — Policy, CLI, history | `phase-4-policy-cli-history` | `05-phase-4-policy-cli-history.md` | M4            | F4–F15 acceptance criteria pass for supported capabilities; dogfooding starts                                             |
+| 5 — Second adapter       | `phase-5-second-adapter`     | `06-phase-5-second-adapter.md`     | M5            | Second adapter reuses the core with no core changes beyond contract-level fixes                                           |
+| 6 — Hardening & release  | `phase-6-hardening-release`  | `07-phase-6-hardening-release.md`  | M6            | PRD §21.1 Definition of Done satisfied on a clean Windows profile                                                         |
 
 Phases 0–2 are complete. Phase 2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
 
@@ -64,41 +64,41 @@ Per-task reviewer subagents are not part of this workflow. Reviews are a phase-b
 
 ## Decision Gates
 
-| Gate | Decided by | Blocks |
-|---|---|---|
-| D-01 first host | S1 scorecard (0.5) | Phase 3 |
-| D-03 process model, D-04 SQLite binding | S2 (0.6, 0.7) | Phase 1 interfaces, Phase 2 |
-| Q-05 audio/TTS/toast mechanism | S3 (0.8–0.12) | Phase 2 providers |
+| Gate                                            | Decided by                                                            | Blocks                                                    |
+| ----------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- |
+| D-01 first host                                 | S1 scorecard (0.5)                                                    | Phase 3                                                   |
+| D-03 process model, D-04 SQLite binding         | S2 (0.6, 0.7)                                                         | Phase 1 interfaces, Phase 2                               |
+| Q-05 audio/TTS/toast mechanism                  | S3 (0.8–0.12)                                                         | Phase 2 providers                                         |
 | Q-06/Q-07 focus & click-to-focus; F13 viability | **S3 (0.11): Q-06 answered (WT/classic console only); Q-07 deferred** | F13 tasks in Phases 2 and 4; task 4.9 cut until re-probed |
-| Q-04 runtime compatibility | S1/S2 | Phase 3 packaging |
-| Q-08 stable IDs | S1 | Phase 1 fingerprint assumptions, Phase 3 fixtures |
+| Q-04 runtime compatibility                      | S1/S2                                                                 | Phase 3 packaging                                         |
+| Q-08 stable IDs                                 | S1                                                                    | Phase 1 fingerprint assumptions, Phase 3 fixtures         |
 
 No phase may implement around an undecided gate; the spike output lands in `docs/` and `PRD.md` §23 first.
 
 ## Traceability — Features to Tasks
 
-| Feature / requirement | Planned in |
-|---|---|
-| F1 needs_input (+F1-R9/R10) | 1.7, 1.16, 3.4, 4.8 |
-| F2 completion (task/session, subagent rules) | 1.7, 1.8, 3.5, 3.6 |
-| F3 approval (+resolution, no payloads) | 1.3, 1.7, 3.3, 2.9 |
-| F4 sounds/volume/mute | 1.5, 2.8, 2.10, 4.5, 4.6 |
-| F5 voice | 1.11, 2.9, 2.11 |
-| F6 desktop toasts (+F6-R9..R11) | 2.9, 2.12, 4.7 |
-| F7 history/status/staleness | 1.15, 2.1, 2.2, 4.3, 4.4 |
-| F8 quiet hours & dedupe | 1.8, 1.9, 1.16, 4.8 |
-| F9 failure (+cancelled default) | 1.7, 3.5, 4.8 |
-| F10 turn_ended (+grace/min duration) | 1.12, 3.5, 4.8 |
-| F11 CLI (status/history/preview/doctor/install/mute/config) | 4.1–4.7, 3.7 |
-| F12 queue/coalescing/rate limiting | 1.13, 2.8, 4.8 |
-| F13 focus awareness (S3-gated) | 2.13, 4.9 |
-| F14 reminders | 1.14, 4.10 |
-| F15 privacy modes | 1.11, 4.11 |
-| Security & injection (PRD §17) | 1.4, 1.11, 2.10–2.12, 6.1 |
-| Install/uninstall without admin (PRD §18.4) | 3.7, 6.2 |
-| Testing strategy (PRD §19.1) | Task 1.17 + every phase's test suite |
-| Acceptance scenarios A–Q (PRD §19.2) | 4.15, 6.5 |
-| Success metrics (PRD §19.3) | 2.14, 3.8, 6.4 |
+| Feature / requirement                                       | Planned in                           |
+| ----------------------------------------------------------- | ------------------------------------ |
+| F1 needs_input (+F1-R9/R10)                                 | 1.7, 1.16, 3.4, 4.8                  |
+| F2 completion (task/session, subagent rules)                | 1.7, 1.8, 3.5, 3.6                   |
+| F3 approval (+resolution, no payloads)                      | 1.3, 1.7, 3.3, 2.9                   |
+| F4 sounds/volume/mute                                       | 1.5, 2.8, 2.10, 4.5, 4.6             |
+| F5 voice                                                    | 1.11, 2.9, 2.11                      |
+| F6 desktop toasts (+F6-R9..R11)                             | 2.9, 2.12, 4.7                       |
+| F7 history/status/staleness                                 | 1.15, 2.1, 2.2, 4.3, 4.4             |
+| F8 quiet hours & dedupe                                     | 1.8, 1.9, 1.16, 4.8                  |
+| F9 failure (+cancelled default)                             | 1.7, 3.5, 4.8                        |
+| F10 turn_ended (+grace/min duration)                        | 1.12, 3.5, 4.8                       |
+| F11 CLI (status/history/preview/doctor/install/mute/config) | 4.1–4.7, 3.7                         |
+| F12 queue/coalescing/rate limiting                          | 1.13, 2.8, 4.8                       |
+| F13 focus awareness (S3-gated)                              | 2.13, 4.9                            |
+| F14 reminders                                               | 1.14, 4.10                           |
+| F15 privacy modes                                           | 1.11, 4.11                           |
+| Security & injection (PRD §17)                              | 1.4, 1.11, 2.10–2.12, 6.1            |
+| Install/uninstall without admin (PRD §18.4)                 | 3.7, 6.2                             |
+| Testing strategy (PRD §19.1)                                | Task 1.17 + every phase's test suite |
+| Acceptance scenarios A–Q (PRD §19.2)                        | 4.15, 6.5                            |
+| Success metrics (PRD §19.3)                                 | 2.14, 3.8, 6.4                       |
 
 ## Review Focus
 
@@ -114,13 +114,13 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 
 ## Risk Watchlist (execution-time)
 
-| Risk | Where handled |
-|---|---|
-| Host API undocumented or changes mid-phase | 0.2–0.4 evidence; 3.2 capability downgrade rule; 5.5 contract tests |
-| SQLite native module friction | 0.7 binding choice; 2.1 tests on clean profile |
-| Toast path dead-ends for unpackaged apps | 0.10; if it fails, F6-R9 fallback is a documented PowerShell/third-party route decided in Q-05 |
-| Alert fatigue from turn_ended | 1.12 + 4.8 tuned defaults; Q-11 dogfood |
-| Schedule slip | M0 re-baseline (0.13) |
+| Risk                                       | Where handled                                                                                  |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| Host API undocumented or changes mid-phase | 0.2–0.4 evidence; 3.2 capability downgrade rule; 5.5 contract tests                            |
+| SQLite native module friction              | 0.7 binding choice; 2.1 tests on clean profile                                                 |
+| Toast path dead-ends for unpackaged apps   | 0.10; if it fails, F6-R9 fallback is a documented PowerShell/third-party route decided in Q-05 |
+| Alert fatigue from turn_ended              | 1.12 + 4.8 tuned defaults; Q-11 dogfood                                                        |
+| Schedule slip                              | M0 re-baseline (0.13)                                                                          |
 
 ## Progress
 
@@ -130,4 +130,4 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 - [x] Phase 3 — First adapter (report: [`../phase-3-progress.md`](../phase-3-progress.md); OpenCode adapter and installer worktrees)
 - [x] Phase 4 — Policy, CLI, history (report: [`../phase-4-progress.md`](../phase-4-progress.md); F13 focus suppression unsupported for this release)
 - [x] Phase 5 — Second adapter (merged in `afb7b59`; live Claude evidence follow-up remains)
-- [ ] Phase 6 — Hardening & release
+- [~] Phase 6 — Hardening & release (hardening evidence integrated; release certification gates remain)

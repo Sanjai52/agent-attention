@@ -1,6 +1,7 @@
 # Architecture
 
-**Status:** Phases 0–2 implemented and verified. Phase 0 decided the first host
+**Status:** Phases 0–6 are implemented for the current MVP scope; Phase 6
+hardening evidence is integrated and release certification remains pending. Phase 0 decided the first host
 (OpenCode, D-01), the process model (D-03), the SQLite binding (D-04), and the
 Windows delivery mechanisms (Q-05/Q-06/Q-07). Phase 2 added the headless host,
 single-writer SQLite store, named-pipe IPC, shim/spool path, provider set,
@@ -15,7 +16,7 @@ and the boundaries later phases must preserve. Source of truth: `PRD.md` §9,
    limiter, and quiet-hours lookup through `PipelineDependencies`.
 2. **The host owns effects.** Reading config, writing SQLite, scheduling
    timers, playing audio, speaking, showing toasts, and focusing windows all
-   happen in Phase 2 packages. The core emits *instructions* and *plans*.
+   happen in Phase 2 packages. The core emits _instructions_ and _plans_.
 3. **Adapters normalize only.** An adapter translates host signals into
    `AgentEvent` and publishes `AdapterCapabilities`. It must not implement
    notification policy or wording.
@@ -33,47 +34,47 @@ sources for forbidden imports and APIs.
 
 ## 2. Components
 
-| Component | Package | Responsibility | Phase 2 state |
-|---|---|---|---|
-| Adapters | `adapters/*` | Host discovery and signal normalization only | Empty scaffolds (Phase 3/5) |
-| Contract | `packages/contract` | Event/config schemas, capabilities, safe names, versions, IPC v1 | Implemented |
-| Core | `packages/core` | Ordering, state, dedupe, policy, templates, pipeline | Implemented |
-| Storage | `packages/storage` | SQLite schema, migrations, repositories, atomic dedupe+event insert | Implemented |
-| Notifications | `packages/notifications` | Provider interfaces, audio queue, dispatch | Implemented |
-| Platform Windows | `packages/platform-windows` | Sound/TTS/toast/focus implementations | Implemented |
-| Host | `packages/host` | Pipe server, lifecycle, timers, spool ingest, runtime composition, doctor | Implemented |
-| Shim | `packages/shim` | Bounded pipe client, detached spawn, spool fallback | Implemented |
-| CLI | `packages/cli` | status/history/preview/doctor/config/mute/install | Empty scaffold (Phase 4) |
+| Component        | Package                     | Responsibility                                                            | Phase 2 state               |
+| ---------------- | --------------------------- | ------------------------------------------------------------------------- | --------------------------- |
+| Adapters         | `adapters/*`                | Host discovery and signal normalization only                              | Empty scaffolds (Phase 3/5) |
+| Contract         | `packages/contract`         | Event/config schemas, capabilities, safe names, versions, IPC v1          | Implemented                 |
+| Core             | `packages/core`             | Ordering, state, dedupe, policy, templates, pipeline                      | Implemented                 |
+| Storage          | `packages/storage`          | SQLite schema, migrations, repositories, atomic dedupe+event insert       | Implemented                 |
+| Notifications    | `packages/notifications`    | Provider interfaces, audio queue, dispatch                                | Implemented                 |
+| Platform Windows | `packages/platform-windows` | Sound/TTS/toast/focus implementations                                     | Implemented                 |
+| Host             | `packages/host`             | Pipe server, lifecycle, timers, spool ingest, runtime composition, doctor | Implemented                 |
+| Shim             | `packages/shim`             | Bounded pipe client, detached spawn, spool fallback                       | Implemented                 |
+| CLI              | `packages/cli`              | status/history/preview/doctor/config/mute/install                         | Empty scaffold (Phase 4)    |
 
 ## 3. Contract module map
 
-| Module | Responsibility |
-|---|---|
-| `events.ts` | `AgentEvent`, 11 event types, detail enums, `SUMMARY_CODES` |
-| `event-schema.ts` | Strict zod validation, required details, failure codes |
-| `capabilities.ts` | `AdapterCapabilities`, support levels, adapter lifecycle |
-| `config.ts` | Config schema v2, verbatim PRD defaults, per-key fallback |
-| `safe-name.ts` | Control/bidi stripping, truncation, voice allowlist, short IDs |
-| `summary.ts` | Enumerated summary codes (no free text) |
-| `versions.ts` | Event schema `1`, config schema `2` |
+| Module            | Responsibility                                                 |
+| ----------------- | -------------------------------------------------------------- |
+| `events.ts`       | `AgentEvent`, 11 event types, detail enums, `SUMMARY_CODES`    |
+| `event-schema.ts` | Strict zod validation, required details, failure codes         |
+| `capabilities.ts` | `AdapterCapabilities`, support levels, adapter lifecycle       |
+| `config.ts`       | Config schema v2, verbatim PRD defaults, per-key fallback      |
+| `safe-name.ts`    | Control/bidi stripping, truncation, voice allowlist, short IDs |
+| `summary.ts`      | Enumerated summary codes (no free text)                        |
+| `versions.ts`     | Event schema `1`, config schema `2`                            |
 
 ## 4. Core module map
 
-| Module | Responsibility |
-|---|---|
-| `state/session.ts` | Storage-agnostic `SessionRecord`, pending requests, task records |
-| `state/transitions.ts` | Pure `applyEvent` state machine; request open/close; task/subagent scope; terminal resume |
-| `ordering.ts` | `compareEvents`, `isLateEvent`, trustworthy-time rule |
-| `dedupe/fingerprint.ts` | Three fingerprint rules, time buckets, adjacent-bucket check |
-| `policy/quiet-hours.ts` | Wall-clock minutes, cross-midnight intervals, per-channel flags |
-| `presentation/templates.ts` | Controlled title/body/speech templates, privacy modes, safe-name fallback |
-| `attention/turn-end.ts` | Min-duration and subagent precedence for inferred turn ends |
-| `attention/rate-limit.ts` | Rolling one-minute admission, priority constants, bypass |
-| `attention/coalesce.ts` | Same-window grouping and summary requirement |
-| `attention/reminders.ts` | Reminder due-time planning and max-reminder cap |
-| `staleness.ts` | Working/waiting staleness, restart reconciliation |
-| `pipeline/types.ts` | `PipelineStore`, clock, dependencies, plans, timers, diagnostics |
-| `pipeline/process-event.ts` | Composition of all of the above; the only public entry point |
+| Module                      | Responsibility                                                                            |
+| --------------------------- | ----------------------------------------------------------------------------------------- |
+| `state/session.ts`          | Storage-agnostic `SessionRecord`, pending requests, task records                          |
+| `state/transitions.ts`      | Pure `applyEvent` state machine; request open/close; task/subagent scope; terminal resume |
+| `ordering.ts`               | `compareEvents`, `isLateEvent`, trustworthy-time rule                                     |
+| `dedupe/fingerprint.ts`     | Three fingerprint rules, time buckets, adjacent-bucket check                              |
+| `policy/quiet-hours.ts`     | Wall-clock minutes, cross-midnight intervals, per-channel flags                           |
+| `presentation/templates.ts` | Controlled title/body/speech templates, privacy modes, safe-name fallback                 |
+| `attention/turn-end.ts`     | Min-duration and subagent precedence for inferred turn ends                               |
+| `attention/rate-limit.ts`   | Rolling one-minute admission, priority constants, bypass                                  |
+| `attention/coalesce.ts`     | Same-window grouping and summary requirement                                              |
+| `attention/reminders.ts`    | Reminder due-time planning and max-reminder cap                                           |
+| `staleness.ts`              | Working/waiting staleness, restart reconciliation                                         |
+| `pipeline/types.ts`         | `PipelineStore`, clock, dependencies, plans, timers, diagnostics                          |
+| `pipeline/process-event.ts` | Composition of all of the above; the only public entry point                              |
 
 `packages/core/src/index.ts` re-exports the public surface.
 
@@ -195,19 +196,19 @@ outcomes, and shuts down cleanly. The default DACL was read back before/after
 hardening (`Everyone`/`Anonymous` read removed; SYSTEM + owner retained).
 Coverage by area:
 
-| Area | Tests |
-|---|---|
-| Contract/schema/config/safe names/IPC v1 | `tests/unit/contract/` |
-| State machine, tasks, subagents | `tests/unit/core/state-*.test.ts` |
-| Ordering, dedupe, staleness, atomic claim | `tests/unit/core/ordering.test.ts`, `fingerprint.test.ts`, `staleness.test.ts`, `pipeline.test.ts` |
-| Policy/templates/attention | `tests/unit/core/quiet-hours.test.ts`, `templates.test.ts`, `turn-end.test.ts`, `rate-limit.test.ts`, `coalesce.test.ts`, `reminders.test.ts` |
-| Fixture replay / purity | `tests/unit/core/replay.test.ts`, `tests/unit/tooling/purity.test.ts` |
-| SQLite schema/repositories/migrations | `tests/unit/storage/` |
-| Provider contracts/queue/dispatch | `tests/unit/notifications/` |
-| Windows sound/speech/toast/focus/ACL | `tests/unit/platform-windows/` |
-| Pipe, lifecycle, single instance, spool | `tests/integration/host/` |
-| Shim budget/spawn/spool fallback | `tests/unit/shim/` |
-| Doctor and latency | `tests/unit/host/doctor.test.ts`, `tests/integration/host/latency-smoke.test.ts` |
+| Area                                      | Tests                                                                                                                                         |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Contract/schema/config/safe names/IPC v1  | `tests/unit/contract/`                                                                                                                        |
+| State machine, tasks, subagents           | `tests/unit/core/state-*.test.ts`                                                                                                             |
+| Ordering, dedupe, staleness, atomic claim | `tests/unit/core/ordering.test.ts`, `fingerprint.test.ts`, `staleness.test.ts`, `pipeline.test.ts`                                            |
+| Policy/templates/attention                | `tests/unit/core/quiet-hours.test.ts`, `templates.test.ts`, `turn-end.test.ts`, `rate-limit.test.ts`, `coalesce.test.ts`, `reminders.test.ts` |
+| Fixture replay / purity                   | `tests/unit/core/replay.test.ts`, `tests/unit/tooling/purity.test.ts`                                                                         |
+| SQLite schema/repositories/migrations     | `tests/unit/storage/`                                                                                                                         |
+| Provider contracts/queue/dispatch         | `tests/unit/notifications/`                                                                                                                   |
+| Windows sound/speech/toast/focus/ACL      | `tests/unit/platform-windows/`                                                                                                                |
+| Pipe, lifecycle, single instance, spool   | `tests/integration/host/`                                                                                                                     |
+| Shim budget/spawn/spool fallback          | `tests/unit/shim/`                                                                                                                            |
+| Doctor and latency                        | `tests/unit/host/doctor.test.ts`, `tests/integration/host/latency-smoke.test.ts`                                                              |
 
 Detailed contract semantics live in [`event-contract.md`](event-contract.md);
 the Phase 1 delivery report is [`phase-1.md`](phase-1.md) and the Phase 2
@@ -215,11 +216,11 @@ delivery report is [`phase-2.md`](phase-2.md).
 
 ## 10. Open architecture decisions
 
-| Decision | Owner | Consequence if changed |
-|---|---|---|
-| D-01 first host adapter | **Decided: OpenCode v2.0.32** | Adapter package/fixtures only; core unaffected |
-| D-03 process model | **Decided:** headless host, per-user pipe, koffi DACL-before-ready, bounded retry, atomic spool | Phase 2 host/shim/pipe wiring |
-| D-04 SQLite binding | **Decided:** built-in `node:sqlite` (`DatabaseSync`), Node ≥24.20.0 | `packages/storage` implementation; isolate behind a storage adapter |
-| Q-05 audio/TTS/toast mechanism | **Decided:** MCI/koffi + SoundPlayer fallback; fixed SAPI stdin; per-user AUMID + WinRT toast | `platform-windows` providers |
-| Q-06/Q-07 focus detection/click-to-focus | **Q-06 decided** for WT/classic console, VS Code unsupported; **Q-07 deferred** until a real toast activation probe | F13 suppressor and install flow |
-| D-05 config/data paths | **Decided** (§8) | Installer and docs |
+| Decision                                 | Owner                                                                                                               | Consequence if changed                                              |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| D-01 first host adapter                  | **Decided: OpenCode v2.0.32**                                                                                       | Adapter package/fixtures only; core unaffected                      |
+| D-03 process model                       | **Decided:** headless host, per-user pipe, koffi DACL-before-ready, bounded retry, atomic spool                     | Phase 2 host/shim/pipe wiring                                       |
+| D-04 SQLite binding                      | **Decided:** built-in `node:sqlite` (`DatabaseSync`), Node ≥24.20.0                                                 | `packages/storage` implementation; isolate behind a storage adapter |
+| Q-05 audio/TTS/toast mechanism           | **Decided:** MCI/koffi + SoundPlayer fallback; fixed SAPI stdin; per-user AUMID + WinRT toast                       | `platform-windows` providers                                        |
+| Q-06/Q-07 focus detection/click-to-focus | **Q-06 decided** for WT/classic console, VS Code unsupported; **Q-07 deferred** until a real toast activation probe | F13 suppressor and install flow                                     |
+| D-05 config/data paths                   | **Decided** (§8)                                                                                                    | Installer and docs                                                  |
