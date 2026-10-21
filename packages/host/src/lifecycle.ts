@@ -299,6 +299,8 @@ export async function runHost(
     });
   };
 
+  let timers: TimerRegistry;
+
   const submitEvent = async (event: AgentEvent) => {
     const result = processEvent(event, {
       store: runtime.store,
@@ -308,6 +310,10 @@ export async function runHost(
       quietHoursMinutes,
       grace,
     });
+
+    for (const instruction of result.timers) {
+      timers.arm(instruction);
+    }
 
     if (result.status !== "rejected" && result.planned.length > 0) {
       void dispatch(result.planned).catch((error: unknown) => {
@@ -337,7 +343,7 @@ export async function runHost(
     resolveStop?.(reason);
   };
 
-  const timers: TimerRegistry = createTimerRegistry({
+  timers = createTimerRegistry({
     nowMs: () => runtime.clock.nowMs(),
     onFire: async (instruction) => {
       if (instruction.kind === "host_exit") {
