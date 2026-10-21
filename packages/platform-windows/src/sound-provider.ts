@@ -2,6 +2,7 @@ import { constants } from "node:fs";
 import { access, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createKoffiMciPlayer, type MciPlayer } from "./mci-player";
 import { runFixedScript, type RunFixedScript } from "./powershell";
 import type { ProviderResult, SoundProvider, SoundRequest } from "./provider-types";
 
@@ -44,6 +45,8 @@ export interface WindowsSoundProviderOptions {
   fallbackOnError?: boolean;
   timeoutMs?: number;
   runScript?: RunFixedScript;
+  /** Override the primary in-process MCI player; null forces the script. */
+  mci?: MciPlayer | null;
   onDiagnostic?: (diagnostic: SoundDiagnostic) => void;
 }
 
@@ -69,6 +72,20 @@ export function createWindowsSoundProvider(
   const runScript = options.runScript ?? runFixedScript;
   const timeoutMs = options.timeoutMs ?? 15_000;
   const scriptPath = path.join(options.scriptsDir, "play-sound.ps1");
+
+  let mciPromise: Promise<MciPlayer | undefined> | undefined;
+  const resolveMci = (): Promise<MciPlayer | undefined> => {
+    if (options.mci !== undefined) {
+      return Promise.resolve(options.mci ?? undefined);
+    }
+    // An injected script runner is the test/seam path; do not touch the native
+    // player behind its back.
+    if (options.runScript !== undefined) {
+      return Promise.resolve(undefined);
+    }
+    mciPromise ??= createKoffiMciPlayer();
+    return mciPromise;
+  };
 
   const diagnose = (code: SoundDiagnosticCode, message: string): void => {
     try {
@@ -133,6 +150,18 @@ export function createWindowsSoundProvider(
       const resolved = await resolve(request);
       if (resolved.invalid && !fallbackOnError) {
         return { status: "failed", errorCode: "invalid_sound" };
+      }
+
+      const mci = await resolveMci();
+      if (mci !== undefined) {
+        try {
+          const primary = await mci.play(resolved.filePath, clampVolume(request.volume));
+          if (primary.status === "delivered") {
+            return primary;
+          }
+        } catch {
+          // Fall through to the fixed PowerShell route.
+        }
       }
 
       let result;
