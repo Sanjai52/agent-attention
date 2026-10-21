@@ -1,2 +1,12 @@
-// Package entry point. Implemented in the phase plans under docs/plans/.
-export {};
+// Package entry point.
+export * from "./install/opencode";
+export * from "./install/types";
+export * from "./ipc-client";
+export * from "./main";
+export * from "./output";
+export * from "./config-file";
+export * from "./commands/config";
+export * from "./commands/history";
+export * from "./commands/mute";
+export * from "./commands/preview";
+export * from "./commands/stats";

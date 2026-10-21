@@ -50,7 +50,7 @@ export interface SpoolIngestSummary {
 }
 
 export interface HostRuntime {
-  store: PipelineStore & { close?: () => void | Promise<void> };
+  store: PipelineStore & { close?: () => void | Promise<void>; purgeExpired?: (now: string) => unknown };
   config: AgentAttentionConfig;
   providers: ProviderSet;
   clock: Clock;
@@ -68,6 +68,7 @@ export interface HostRuntime {
   mute?(until?: string): void | Promise<void>;
   unmute?(): void | Promise<void>;
   shutdown?(): void | Promise<void>;
+  doctor?(json: boolean): unknown | Promise<unknown>;
 }
 
 export interface RunHostOptions {
@@ -89,6 +90,8 @@ export interface ShouldExitInput {
 
 const MINUTE_MS = 60_000;
 const HOST_TIMER_SESSION_KEY = "host";
+const RETENTION_TIMER_SESSION_KEY = "retention";
+const RETENTION_INTERVAL_MS = 60 * 60 * 1000;
 
 const EVENT_CONFIG_KEYS: Readonly<
   Partial<Record<AgentEventType, keyof AgentAttentionConfig["events"]>>
@@ -299,6 +302,11 @@ export async function runHost(
     });
   };
 
+  // The submit callback closes over the registry, which is initialized before
+  // the host accepts any requests.
+  // eslint-disable-next-line prefer-const
+  let timers: TimerRegistry;
+
   const submitEvent = async (event: AgentEvent) => {
     const result = processEvent(event, {
       store: runtime.store,
@@ -308,6 +316,10 @@ export async function runHost(
       quietHoursMinutes,
       grace,
     });
+
+    for (const instruction of result.timers) {
+      timers.arm(instruction);
+    }
 
     if (result.status !== "rejected" && result.planned.length > 0) {
       void dispatch(result.planned).catch((error: unknown) => {
@@ -337,7 +349,7 @@ export async function runHost(
     resolveStop?.(reason);
   };
 
-  const timers: TimerRegistry = createTimerRegistry({
+  timers = createTimerRegistry({
     nowMs: () => runtime.clock.nowMs(),
     onFire: async (instruction) => {
       if (instruction.kind === "host_exit") {
@@ -354,6 +366,22 @@ export async function runHost(
           requestStop("idle");
         } else {
           refreshIdleTimer();
+        }
+        return;
+      }
+
+      if (instruction.kind === "retention_purge") {
+        try {
+          runtime.store.purgeExpired?.(runtime.clock.now());
+        } catch {
+          writeDiagnostic("retention purge failed");
+        }
+        if (!stopping) {
+          timers.arm({
+            kind: "retention_purge",
+            sessionKey: RETENTION_TIMER_SESSION_KEY,
+            dueAt: new Date(runtime.clock.nowMs() + RETENTION_INTERVAL_MS).toISOString(),
+          });
         }
         return;
       }
@@ -425,6 +453,7 @@ export async function runHost(
       isReady: () => readyForRequests,
       ...(runtime.hardenPipeAcl === undefined ? {} : { hardenPipeAcl: runtime.hardenPipeAcl }),
       ...(runtime.history === undefined ? {} : { history: runtime.history }),
+      ...(runtime.doctor === undefined ? {} : { doctor: runtime.doctor }),
       ...(runtime.preview === undefined ? {} : { preview: runtime.preview }),
       ...(runtime.mute === undefined ? {} : { mute: runtime.mute }),
       ...(runtime.unmute === undefined ? {} : { unmute: runtime.unmute }),
@@ -451,6 +480,17 @@ export async function runHost(
     }
 
     await runtime.migrate();
+
+    try {
+      runtime.store.purgeExpired?.(runtime.clock.now());
+    } catch {
+      writeDiagnostic("initial retention purge failed");
+    }
+    timers.arm({
+      kind: "retention_purge",
+      sessionKey: RETENTION_TIMER_SESSION_KEY,
+      dueAt: new Date(runtime.clock.nowMs() + RETENTION_INTERVAL_MS).toISOString(),
+    });
 
     if (!noIngest && spoolDir !== undefined) {
       const ingest = runtime.ingestSpool ?? ((dir: string) => ingestSpool(dir, submitEvent));

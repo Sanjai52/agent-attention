@@ -54,6 +54,7 @@ export interface ConnectionDependencies {
   mute?: (until?: string) => void | Promise<void>;
   unmute?: () => void | Promise<void>;
   shutdown?: () => void | Promise<void>;
+  doctor?: (json: boolean) => unknown | Promise<unknown>;
   /** Persist-then-dispatch hook owned by the host lifecycle (Task 2.9). */
   dispatch?: (planned: PlannedNotification[]) => void | Promise<void>;
   onActivity?: () => void;
@@ -230,6 +231,11 @@ export function createConnection(deps: ConnectionDependencies): HostConnection {
           request.id,
           deps.status === undefined ? defaultStatus() : await deps.status(request.payload.json),
         );
+      case "doctor":
+        if (deps.doctor === undefined) {
+          return failure(request.id, "unavailable", "doctor is not available in this host");
+        }
+        return success(request.id, await deps.doctor(request.payload.json));
       case "history":
         if (deps.history === undefined) {
           return failure(request.id, "unavailable", "history is not available in this host");

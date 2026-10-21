@@ -1515,10 +1515,28 @@ remaining validation limits are recorded in `docs/phase-0.md` §3.
 **Estimate:** 4–6 working days. Adapter for the host chosen in D-01; capability declaration; fixtures recorded from real sessions; install/uninstall; live smoke tests.
 **Exit:** the adapter loads reliably and detects its declared events in documented scenarios; the capability declaration matches measured behavior.
 
+**Outcome (2026-10-21): complete.** The OpenCode adapter, production
+`Plugin.define()` entrypoint, event normalizer, capability declaration,
+installer/uninstaller, fixture tests, live-smoke report, competitive review,
+and measured-vs-declared table are complete. Real OpenCode v2.0.32 runs
+observed successful completion and interruption; approval behavior is backed by
+the frozen real-host approval capture because one fresh approval run did not
+invoke a permissioned tool. Evidence is in
+[`docs/phase-3-progress.md`](docs/phase-3-progress.md).
+
 ## Milestone 4 — Attention policy, CLI, and history
 
 **Estimate:** 5–7 working days. Quiet hours (incl. DST); rate limiting and coalescing; turn-end grace and min duration; subagent policy; focus awareness for WT/classic console only (Q-06; VS Code unsupported; click-to-focus task deferred); reminders; privacy modes; `status`, `history`, `preview`, `mute`, `config`, full `doctor`; retention purge; start of dogfooding.
 **Exit:** F4–F15 acceptance criteria pass for the supported capabilities.
+
+**Outcome (2026-10-21): complete for supported capabilities.** The Phase 4
+CLI, IPC transport, config handling, status/history queries, preview/mute
+commands, host timer orchestration, retention purge, local dogfood stats, and
+acceptance evidence are implemented. F13 focus suppression is explicitly
+unsupported in this release because the event contract does not provide a
+verified session-to-window mapping; doctor reports that capability as
+unsupported and the host never suppresses alerts based on guessed focus state.
+Evidence is in [`docs/phase-4-acceptance.md`](docs/phase-4-acceptance.md).
 
 ## Milestone 5 — Second adapter
 

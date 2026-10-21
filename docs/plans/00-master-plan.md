@@ -127,7 +127,7 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 - [x] Phase 0 — Feasibility spikes (report: [`../phase-0.md`](../phase-0.md); branch kept after merge)
 - [x] Phase 1 — Contract & core (report: [`../phase-1.md`](../phase-1.md))
 - [x] Phase 2 — Host & providers (report: [`../phase-2.md`](../phase-2.md))
-- [ ] Phase 3 — First adapter
-- [ ] Phase 4 — Policy, CLI, history
+- [x] Phase 3 — First adapter (report: [`../phase-3-progress.md`](../phase-3-progress.md); OpenCode adapter and installer worktrees)
+- [x] Phase 4 — Policy, CLI, history (report: [`../phase-4-progress.md`](../phase-4-progress.md); F13 focus suppression unsupported for this release)
 - [ ] Phase 5 — Second adapter
 - [ ] Phase 6 — Hardening & release

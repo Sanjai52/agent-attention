@@ -54,4 +54,23 @@ despite its absence from the V2 documentation.
 
 ## Measured vs declared (Phase 3 Tasks 3.8 / 5.4)
 
-[Per-adapter table: event type -> declared support -> measured behavior -> date/host version]
+| Event | Declared support | Measured behavior | Evidence | Host/date |
+|---|---|---|---|---|
+| `agent.started` | authoritative | `session.execution.started` normalized with stable session identity | live plain-text capture + fixture replay | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.progress` | authoritative | `session.step.started` produces coarse progress; payload fields are dropped | fixture replay, 21 adapter tests | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.needs_input` | unsupported | No verified authoritative question signal; no event emitted | capability test and negative fixtures | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.needs_approval` | authoritative | `permission.asked` produces a request ID without command/tool payloads | frozen real-host approval fixture + redaction tests | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.approval_resolved` | authoritative | `permission.replied` maps `once` to approved and `reject` to denied | frozen real-host approval fixtures | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.resumed` | unsupported | No verified resume signal | capability declaration | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.turn_ended` | inferred | `session.execution.interrupted` maps to a non-success turn end | live abort capture + fixture replay | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.completed` | authoritative | `session.execution.succeeded` maps to session completion | live plain-text capture + fixture replay | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.failed` | authoritative | `session.execution.failed` maps to `host_error` | frozen real-host failure fixture | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.session_ended` | unsupported | No verified session-end signal | capability declaration | OpenCode v2.0.32 / 2026-10-21 |
+| `agent.state_unknown` | unsupported | No host signal; core remains responsible for unknown state | capability declaration | OpenCode v2.0.32 / 2026-10-21 |
+
+The live plain-text scenario completed with `session.execution.succeeded`; the
+live abort scenario completed with `session.execution.interrupted`. A fresh
+permission-allow attempt did not produce a permission request because that
+specific model turn did not invoke a permissioned tool; approval support is
+therefore evidenced by the frozen real-host approval capture and its replay
+tests, not falsely claimed as a fresh live approval observation.

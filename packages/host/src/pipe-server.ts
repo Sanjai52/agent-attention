@@ -157,6 +157,7 @@ export function createPipeServer(options: PipeServerOptions): PipeServer {
         ? {}
         : { quietHoursMinutes: options.quietHoursMinutes }),
       ...(options.status === undefined ? {} : { status: options.status }),
+      ...(options.doctor === undefined ? {} : { doctor: options.doctor }),
       ...(options.history === undefined ? {} : { history: options.history }),
       ...(options.preview === undefined ? {} : { preview: options.preview }),
       ...(options.mute === undefined ? {} : { mute: options.mute }),

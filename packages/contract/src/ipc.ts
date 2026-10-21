@@ -81,6 +81,10 @@ export interface StatusRequest {
   json: boolean;
 }
 
+export interface DoctorRequest {
+  json: boolean;
+}
+
 export interface HistoryFilters {
   adapterId?: string;
   sessionId?: string;
@@ -115,6 +119,7 @@ export interface RequestPayloads {
   adapter_hello: AdapterHello;
   submit_event: SubmitEvent;
   status: StatusRequest;
+  doctor: DoctorRequest;
   history: HistoryRequest;
   preview: PreviewRequest;
   ping: Record<string, never>;
@@ -184,6 +189,7 @@ const requestPayloadSchemas: {
   adapter_hello: helloPayloadSchema as unknown as z.ZodType<AdapterHello>,
   submit_event: z.object({ event: z.unknown() }),
   status: z.object({ json: z.boolean().default(false) }),
+  doctor: z.object({ json: z.boolean().default(false) }),
   history: z.object({ filters: historyFiltersSchema }),
   preview: z.object({
     eventClass: z.enum([
