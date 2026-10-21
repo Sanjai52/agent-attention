@@ -306,7 +306,32 @@ Final automated rerun:
 - tests: 57 files / 600 tests PASS
 - production build: PASS
 
-Phase 6 is still not ready because real-profile provider verification and the
-Windows OS-reporting clarification remain open. OpenCode event delivery,
-packaged CLI execution, Claude hook delivery, and preview behavior are no
-longer blockers.
+Phase 6 is still not ready because provider capabilities are limited on this
+machine and the Windows OS-reporting clarification remains open. OpenCode event
+delivery, packaged CLI execution, Claude hook delivery, and preview behavior
+are no longer blockers.
+
+## Real-profile verification — 2026-10-21
+
+The installed OpenCode v2 plugin and packaged Claude hook were exercised against
+the real Windows user profiles, then removed again. The original Claude settings
+file was restored byte-for-byte and the OpenCode configuration returned to its
+previous contents.
+
+| Real-profile check | Result | Evidence |
+|---|---|---|
+| OpenCode plugin loaded | **PASS** | OpenCode v2 loaded `adapters/opencode/plugin/index.js` from the installed directory entry |
+| OpenCode lifecycle delivery | **PASS** | Real prompt persisted authoritative `agent.started` and `agent.completed` records for adapter `opencode` |
+| Claude hook delivery | **PASS** | Real settings-installed command persisted authoritative `agent.started` for `real-claude-pretest-fixed` under adapter `claude-code` |
+| Host auto-start from plugin runtime | **FIXED / PASS** | Host now starts under Node when invoked from OpenCode/Bun; direct real status and doctor checks reached IPC successfully |
+| Windows SID pipe resolution | **FIXED / PASS** | Host and shim use `%SystemRoot%\System32\whoami.exe`; no Git `whoami` warning recurred |
+| Sound preview | **PASS** | Real host returned `status: delivered` |
+| Desktop preview | **ENVIRONMENT-LIMITED** | Returned `toast_not_registered`; Windows toast registration is not present on this machine |
+| Voice preview | **ENVIRONMENT-LIMITED** | Returned `status: queued`; TTS is unavailable and no voices were reported |
+
+Real diagnostics reported Windows 11 Home Single Language `10.0.26300`, Node
+`v24.20.0`, a healthy schema/database, a reachable named pipe, no audio/TTS,
+unregistered toast, and unsupported focus integration. These are provider or
+machine-state limitations, not event-pipeline failures.
+
+The host-runtime fix is covered by the full suite: 57 files / 601 tests passed.
