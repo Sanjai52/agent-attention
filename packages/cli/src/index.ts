@@ -1,5 +1,6 @@
 // Package entry point.
 export * from "./install/opencode";
+export * from "./install/claude-code";
 export * from "./install/types";
 export * from "./ipc-client";
 export * from "./main";
