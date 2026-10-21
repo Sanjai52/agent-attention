@@ -92,7 +92,7 @@
 - Produces: `adapterContractSuite(name: string, adapter: AgentAttentionAdapter, fixtures: FixtureStream[])` asserting: capability schema validity; no unsupported-type emission across all fixtures; confidence discipline; contract-valid events only; duplicate idempotence.
 - Core-leak check (RF9): a CI step `git diff --stat` review recorded as a PR checklist item — the plan requires a written statement in the PR body when `packages/core` changed: which contract-level fix, which PRD §24 entry.
 
-- [x] **Steps 1–5 complete for the contract boundary:** both adapters pass capability, parse, unsupported-event, and interleaving/no-cross-talk checks without core changes.
+- [x] **Steps 1–5 complete:** both adapters pass capability, parse, unsupported-event, and interleaving/no-cross-talk checks without core changes; host/history acceptance also passes through the IPC connection path.
 
 ---
 

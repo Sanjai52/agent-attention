@@ -90,6 +90,7 @@ function connection(options: {
   store?: MemoryPipelineStore;
   config?: AgentAttentionConfig;
   shutdown?: () => void;
+  history?: Parameters<typeof createConnection>[0]["history"];
   dispatch?: Parameters<typeof createConnection>[0]["dispatch"];
 } = {}) {
   const store = options.store ?? new MemoryPipelineStore();
@@ -101,6 +102,7 @@ function connection(options: {
       providers: providers(),
       clock: clock(),
       ...(options.shutdown === undefined ? {} : { shutdown: options.shutdown }),
+      ...(options.history === undefined ? {} : { history: options.history }),
       ...(options.dispatch === undefined ? {} : { dispatch: options.dispatch }),
     }),
   };
@@ -286,6 +288,57 @@ describe("connection dispatcher", () => {
         expect(response.error.code).toBe("unavailable");
       }
     }
+  });
+
+  it("keeps interleaved adapter events visible through the host history route", async () => {
+    const store = new MemoryPipelineStore();
+    const history = vi.fn((filters: { adapterId?: string }) =>
+      store.events
+        .filter(({ event: stored }) => filters.adapterId === undefined || stored.source.adapterId === filters.adapterId)
+        .map(({ event: stored }) => stored),
+    );
+    const first = connection({ store, history }).connection;
+    const second = connection({ store }).connection;
+
+    expect((await first.handleRequest(hello("hello-opencode", "opencode"))).ok).toBe(true);
+    expect(
+      (
+        await first.handleRequest(
+          submit(
+            event({
+              eventId: "opencode-started",
+              source: { ...event().source, adapterId: "opencode" },
+            }),
+            "submit-opencode",
+          ),
+        )
+      ).ok,
+    ).toBe(true);
+
+    expect((await second.handleRequest(hello("hello-claude", "claude-code"))).ok).toBe(true);
+    expect(
+      (
+        await second.handleRequest(
+          submit(
+            event({
+              eventId: "claude-started",
+              source: { ...event().source, adapterId: "claude-code" },
+            }),
+            "submit-claude",
+          ),
+        )
+      ).ok,
+    ).toBe(true);
+
+    const response = await first.handleRequest({
+      protocolVersion: IPC_PROTOCOL_VERSION,
+      id: "history-claude",
+      kind: "history",
+      payload: { filters: { adapterId: "claude-code" } },
+    });
+
+    expect(response).toMatchObject({ ok: true, result: [{ eventId: "claude-started" }] });
+    expect(history).toHaveBeenCalledWith({ adapterId: "claude-code" });
   });
 });
 

@@ -49,8 +49,8 @@ commits. Their source worktrees remain available for traceability.
 - [ ] Complete a fresh trusted interactive hook capture; the local runtime is
   2.1.304 while the verified S1 evidence is 2.1.181, and headless approval is
   intentionally not claimed.
-- [x] Run the interleaved multi-adapter contract proof; host/history acceptance
-  remains a final integration check.
+- [x] Run the interleaved multi-adapter contract proof and host/history
+  acceptance through the IPC connection path.
 - [ ] Re-run GitHub Actions on the Phase 5 branch and investigate any repeated
   Windows latency or SQLite timeout flakes.
 - [ ] Complete the Phase 5 exit checklist and prepare a PR to `main`.
