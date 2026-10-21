@@ -23,7 +23,7 @@
 - [x] User-facing Claude Code install/uninstall CLI routing.
 - [x] Installation, troubleshooting, adapter-development, and documentation-index updates.
 - [x] Targeted tests: 7 files, 12 tests passed across adapter, contract, and installer paths.
-- [x] Full local CI: 57 files, 598 tests, lint, dependency check, typecheck, and build passed before final documentation-only changes.
+- [x] Full local CI: 57 files, 599 tests, lint, dependency check, typecheck, and build passed.
 
 ## Evidence commits
 
