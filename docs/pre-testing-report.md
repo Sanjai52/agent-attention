@@ -340,3 +340,19 @@ The host-runtime, provider-wiring, resource-resolution, and installer changes
 are covered by the full suite: 57 files / 601 tests passed. The CLI now owns
 toast registration with `install --host windows` and removal with
 `uninstall --host windows`.
+
+## Approved temporary-profile execution — 2026-10-21
+
+| Scenario | Result | Evidence |
+|---|---|---|
+| PT-01 baseline | **PASS** | Node `v24.20.0`, npm `11.19.0`, Claude `2.1.306`, OpenCode `2.0.32`, Windows 11 `10.0.26300` |
+| PT-02 install/idempotence/uninstall | **PASS** | First install changed the temporary config, second returned `changed: false`, and uninstall preserved unrelated `pretestMarker` |
+| PT-03A ordinary completion | **PASS** | Temporary profile returned `PT03A_COMPLETION_OK`; history persisted authoritative OpenCode start/completion events |
+| PT-04 delivery | **PASS** | Toast registered and desktop preview submitted; SAPI voice probe found three voices; sound preview delivered |
+| Claude SessionStart hook | **PASS** | Temporary settings hook persisted `agent.started` for `real-claude-pretest-fixed`; settings restored afterward |
+
+PT-03A took approximately two minutes because the selected model backend was
+slow, but the deterministic response and lifecycle pair completed successfully.
+PT-03B approval, PT-03C failure, PT-03D interruption, PT-03E concurrency, and
+the policy/recovery/security scenarios remain the next manual execution block;
+they are not claimed as passed by this report.
