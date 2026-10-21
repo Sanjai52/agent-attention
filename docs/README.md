@@ -18,6 +18,7 @@
 | `phase-4-acceptance.md` | F4–F15 acceptance evidence and documented limits | Phase 4 |
 | `phase-5-progress.md` | Claude Code adapter implementation and verification progress | Phase 5 |
 | `pre-testing.md` | Manual pre-testing scope, setup, prompts, expected outcomes, and evidence format | Before Phase 6 |
+| `pre-testing-report.md` | Recorded pre-testing execution results, blockers, and release findings | Before Phase 6 |
 | `phase-5-orchestration.md` | Phase 5 worktree allocation and integration gates | Phase 5 |
 | `plans/06-phase-5-second-adapter.md` | Second host adapter | Phase 5 |
 | `plans/07-phase-6-hardening-release.md` | Security, packaging, acceptance, release | Phase 6 |
