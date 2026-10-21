@@ -1,9 +1,9 @@
 import { parseAgentEvent, type AdapterCapabilities, type AgentEvent } from "@agent-attention/contract";
 import { describe, expect, it } from "vitest";
-import { capabilitiesFor as claudeCapabilities } from "../../../../adapters/claude-code/src/capabilities";
-import { createNormalizer as createClaudeNormalizer } from "../../../../adapters/claude-code/src/normalize";
-import { capabilitiesFor as openCodeCapabilities } from "../../../../adapters/opencode/src/capabilities";
-import { createNormalizer as createOpenCodeNormalizer } from "../../../../adapters/opencode/src/normalize/normalizer";
+import { capabilitiesFor as claudeCapabilities } from "../../../adapters/claude-code/src/capabilities";
+import { createNormalizer as createClaudeNormalizer } from "../../../adapters/claude-code/src/normalize";
+import { capabilitiesFor as openCodeCapabilities } from "../../../adapters/opencode/src/capabilities";
+import { createNormalizer as createOpenCodeNormalizer } from "../../../adapters/opencode/src/normalize/normalizer";
 
 function assertContract(capabilities: AdapterCapabilities, events: readonly AgentEvent[]): void {
   for (const event of events) {
