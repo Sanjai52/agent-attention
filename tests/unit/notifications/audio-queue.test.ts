@@ -203,8 +203,8 @@ describe("createAudioQueue", () => {
     expect(results[0]).toMatchObject({
       entry: expect.objectContaining({ eventId: "first" }),
       status: "failed",
+      errorCode: "provider_rejected",
     });
-    expect(results[0]?.errorCode).toBe("provider_rejected");
     expect(results[1]).toMatchObject({
       entry: expect.objectContaining({ eventId: "second" }),
       status: "delivered",

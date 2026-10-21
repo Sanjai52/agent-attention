@@ -83,10 +83,7 @@ export function createAudioQueue(options: AudioQueueOptions): AudioQueue {
   let idleWaiters: Array<() => void> = [];
 
   function emit(result: AudioQueueResult): void {
-    const callbacks = [
-      ...(options.onResult === undefined ? [] : [options.onResult]),
-      ...listeners,
-    ];
+    const callbacks = [...(options.onResult === undefined ? [] : [options.onResult]), ...listeners];
 
     for (const callback of callbacks) {
       try {
