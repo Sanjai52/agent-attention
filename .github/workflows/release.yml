@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.20.0
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run release checks
+        run: npm run ci
+
+      - name: Create package artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path release-artifacts | Out-Null
+          $workspaces = @(
+            "packages/contract",
+            "packages/core",
+            "packages/host",
+            "packages/notifications",
+            "packages/platform-windows",
+            "packages/shim",
+            "packages/storage",
+            "packages/cli",
+            "adapters/opencode",
+            "adapters/claude-code"
+          )
+          foreach ($workspace in $workspaces) {
+            npm pack --workspace $workspace --pack-destination release-artifacts
+            if ($LASTEXITCODE -ne 0) { throw "npm pack failed for $workspace" }
+          }
+
+      - name: Create OpenCode host-native plugin archive
+        shell: pwsh
+        run: |
+          $pluginRoot = Join-Path $env:RUNNER_TEMP "agent-attention-opencode-plugin"
+          Remove-Item -LiteralPath $pluginRoot -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path (Join-Path $pluginRoot "dist") | Out-Null
+          Copy-Item "adapters/opencode/plugin/index.js" $pluginRoot
+          Copy-Item "adapters/opencode/dist/*" (Join-Path $pluginRoot "dist") -Recurse
+          Compress-Archive -Path (Join-Path $pluginRoot "*") -DestinationPath "release-artifacts/agent-attention-opencode-plugin.zip" -Force
+
+      - name: Stage compatibility matrix
+        shell: pwsh
+        run: Copy-Item docs/compatibility.md release-artifacts/compatibility.md
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-attention-release-${{ github.ref_name }}
+          path: release-artifacts/
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          generate_release_notes: true
+          files: release-artifacts/*
