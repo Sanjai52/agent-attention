@@ -7,7 +7,7 @@ const EXPECTED: Record<AgentEventType, "authoritative" | "inferred" | "unsupport
   "agent.progress": "unsupported",
   "agent.needs_input": "unsupported",
   "agent.needs_approval": "authoritative",
-  "agent.approval_resolved": "unsupported",
+  "agent.approval_resolved": "inferred",
   "agent.resumed": "unsupported",
   "agent.turn_ended": "inferred",
   "agent.completed": "unsupported",
@@ -43,7 +43,7 @@ describe("Claude Code capability declaration", () => {
 
   it("rejects unsupported event emission", () => {
     const capabilities = capabilitiesFor();
+    expect(() => assertEmittable(capabilities, "agent.needs_input")).toThrow("agent.needs_input");
     expect(() => assertEmittable(capabilities, "agent.completed")).toThrow("agent.completed");
-    expect(() => assertEmittable(capabilities, "agent.approval_resolved")).toThrow("agent.approval_resolved");
   });
 });
