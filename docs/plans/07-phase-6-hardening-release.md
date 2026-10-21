@@ -89,6 +89,7 @@
 **Interfaces:**
 - Consumes: Task 2.14 latency smoke; PRD §19.3 targets.
 - Produces measured numbers for: receipt-to-dispatch p95 (< 500 ms), shim overhead p95 (< 300 ms, cap 1000 ms), hook-to-audible p95 (< 2 s, stubbed audio acceptable with measured provider overhead added), storm behavior (50 events/s; at most `maxAlertsPerMinute` audible, one summary, complete history), and crash-under-load (kill host mid-storm → restart reconciles, spool preserved, no duplicates).
+- **Phase 2 follow-up:** TTS currently spawns the fixed SAPI script per utterance (**4.8 s cold**, measured). If that makes hook-to-audible exceed the target, add the resident speech worker described in Q-05 before recording the metric; do not hide the provider overhead in the stub.
 
 - [ ] **Step 1: Write the storm test** (RF2/RF10) against the real pipe + real SQLite + stub providers; assert all §19.3 targets and record actual numbers.
 - [ ] **Step 2: Add the mid-storm kill test** (RF3/RF10): kill -9, restart, ingest spool, replay ids — assert exactly-once alerting for affected events.

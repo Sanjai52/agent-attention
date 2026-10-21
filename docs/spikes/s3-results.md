@@ -1105,3 +1105,21 @@ to Decided and record the residual validation items in §23.2.
   and classic console; unsupported for VS Code; `doctor` must report the
   capability and `focus.enabled` must default off where unsupported. Pane-level
   precision is not claimed.
+
+## Phase 2 provider verification (2026-10-21)
+
+Production providers were exercised through their real modules, and the host
+was exercised end to end through `packages/host/dist/main.js`.
+
+| Check | Result |
+|---|---|
+| koffi MCI, bundled `attention.wav`, volume 0 (open/read/close only) | `delivered`, 103 ms |
+| koffi MCI, bundled `attention.wav`, volume 1 (audible) | `delivered`, 839 ms |
+| Fixed script fallback | Unit tests cover MCI-unavailable, script failure, timeout, hostile path, and invalid file; the PowerShell script remains the dependency-free fallback. |
+| Host delivery record | Real shim event → `sound=delivered`; `desktop=unavailable` with `toast_not_registered`; `voice=suppressed` without affecting the others. |
+| SAPI TTS, fixed script, volume 0 | `delivered`, 4.8 s cold. This is the per-utterance path, not a resident worker; the resident-worker optimization remains a Phase 4/6 follow-up (recorded in `docs/phase-2.md`). |
+| Focus provider, live desktop | `{ processId: 43360, executable: "Code.exe" }`, 1.56 s. Session-to-window mapping is still Phase 4 (Q-06). |
+| Pipe DACL | Node default readback exposed `Everyone`/`Anonymous` read; after hardening `D:P(A;;FA;;;SY)(A;;FA;;;OW)`; hardening completed in 0.7 ms and the host read it back before readiness. |
+
+This is provider-viability evidence, not a new latency benchmark. The measured
+receipt→dispatch smoke remains in `s2-results.md`.

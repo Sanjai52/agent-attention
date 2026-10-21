@@ -1,12 +1,14 @@
 # Troubleshooting
 
-> Latency smoke (Phase 2, Windows): receipt→response p95 **40.7 ms** for 500
-> `agent.progress` events in an isolated run (**147.5 ms** with the full suite
-> running in parallel); receipt→dispatch p95 **3.6 ms** for 50
-> `agent.needs_input` events. Target: p95 < 500 ms.
+> Latency smoke (Phase 2, Windows): receipt→response p95 **40.7 ms** in the
+> recorded isolated run and **80.3 ms** in the final full gate for 500
+> `agent.progress` events (**147.5 ms** in a separate parallel-load run);
+> receipt→dispatch p95 **3.4–3.6 ms** for 50 `agent.needs_input` events.
+> Target: p95 < 500 ms.
 
-Status: scaffold. Expanded in Phase 2 (doctor glossary), Phase 3/5 (host sections),
-and finalized in Phase 6 Task 6.6.
+Status: Phase 2 doctor glossary and host checks implemented; CLI rendering lands
+in Phase 4 Task 4.7, host-specific sections in Phases 3/5, and final polish in
+Phase 6 Task 6.6.
 Source of truth: `PRD.md` §7.1, §17.5, F11-R1.
 
 ## Doctor glossary
