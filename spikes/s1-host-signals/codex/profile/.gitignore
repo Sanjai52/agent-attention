@@ -1,0 +1,8 @@
+# Codex probe profile — throwaway
+*
+!.gitignore
+!config.toml
+!hooks.json
+
+# `*` ignores the throwaway CODEX_HOME runtime state, including auth.json and
+# session logs copied or created during the S1 probe.

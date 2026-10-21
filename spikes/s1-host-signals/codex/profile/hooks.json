@@ -1,0 +1,93 @@
+{
+  "description": "S1 throwaway probe hooks. Logs every documented lifecycle payload; never decides or blocks.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Interrupt": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:/Users/sanja/.local/share/opencode/worktree/4e4e4b/phase-0-s1-third/spikes/s1-host-signals/codex/probe-hook.mjs\"",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}
