@@ -3,7 +3,11 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { createWindowsSoundProvider } from "@agent-attention/platform-windows";
+import {
+  createMciPlayer,
+  createWindowsSoundProvider,
+  type MciBackend,
+} from "@agent-attention/platform-windows";
 import { createFakeRunner, scriptResult } from "./fake-runner";
 
 const DEFAULT_SOUNDS_DIR = fileURLToPath(
@@ -44,6 +48,64 @@ describe("createWindowsSoundProvider", () => {
       "80",
     ]);
     expect(call.options.stdin).toBeUndefined();
+  });
+
+  it("uses in-process MCI before the PowerShell fallback", async () => {
+    const runner = createFakeRunner();
+    const played: Array<{ path: string; volume: number }> = [];
+    const provider = createWindowsSoundProvider({
+      scriptsDir,
+      runScript: runner.run,
+      mci: {
+        play: async (filePath, volume) => {
+          played.push({ path: filePath, volume });
+          return { status: "delivered" };
+        },
+      },
+    });
+
+    await expect(provider.play({ soundId: "attention", volume: 40 })).resolves.toEqual({
+      status: "delivered",
+    });
+    expect(played).toHaveLength(1);
+    expect(runner.calls).toHaveLength(0);
+  });
+
+  it("falls back to the fixed script when the MCI route fails", async () => {
+    const runner = createFakeRunner();
+    const provider = createWindowsSoundProvider({
+      scriptsDir,
+      runScript: runner.run,
+      mci: {
+        play: async () => ({ status: "unavailable", errorCode: "audio_device_unavailable" }),
+      },
+    });
+
+    await expect(provider.play({ soundId: "complete", volume: 60 })).resolves.toEqual({
+      status: "delivered",
+    });
+    expect(runner.calls).toHaveLength(1);
+    expect(runner.calls[0]?.options.args[1]).toMatch(/complete\.wav$/);
+  });
+
+  it("serializes the MCI alias and maps an invalid wave error", async () => {
+    const calls: string[] = [];
+    const backend: MciBackend = {
+      open(_path, _type, alias) {
+        calls.push(`open:${alias}`);
+        return { code: 296, message: "invalid wave" };
+      },
+      setVolume: () => 0,
+      play: () => 0,
+      length: () => 0,
+      close: () => undefined,
+    };
+
+    await expect(createMciPlayer(backend).play("C:\\sounds\\bad.wav", 50)).resolves.toEqual({
+      status: "failed",
+      errorCode: "invalid_sound_file",
+    });
+    expect(calls[0]).toBe("open:agentattention1");
   });
 
   it.each(["attention", "approval", "idle", "complete", "failure"])(
