@@ -26,7 +26,7 @@ describe("installClaudeCode", () => {
       expect(uninstall.changed).toBe(true);
       const remaining = await readFile(settingsPath, "utf8");
       expect(remaining).toContain("user-owned-hook");
-      expect(remaining).toContain("agent-attention claude-hook");
+      expect(remaining).not.toContain("agent-attention claude-hook");
     } finally {
       await rm(root, { recursive: true, force: true });
     }
