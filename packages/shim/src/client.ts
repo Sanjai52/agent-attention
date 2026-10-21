@@ -338,6 +338,61 @@ export async function sendToHost(
   return spoolFallback(request, spoolDir);
 }
 
+/**
+ * Request/response variant for trusted local clients such as the CLI. Unlike
+ * sendToHost, this does not spool because commands need the host response.
+ */
+export async function requestToHost(
+  request: IpcRequest,
+  options: SendToHostOptions = {},
+): Promise<IpcResponse> {
+  const now = options.now ?? (() => Date.now());
+  const budgetMs = Math.max(1, options.budgetMs ?? TOTAL_BUDGET_MS);
+  const connectTimeoutMs = Math.max(1, options.connectTimeoutMs ?? CONNECT_TIMEOUT_MS);
+  const retryTimeoutMs = Math.max(0, options.retryTimeoutMs ?? SPAWN_RETRY_TIMEOUT_MS);
+  const retryPollMs = Math.max(1, options.retryPollMs ?? RETRY_POLL_MS);
+  const connect = options.connect ?? connectPipe;
+  const spawnHost = options.spawnHost ?? (() => spawnHostDetached());
+  const pipeName = options.pipeName ?? resolvePipeName();
+  const deadline = now() + budgetMs;
+
+  try {
+    return await attempt(request, {
+      pipeName,
+      connect,
+      now,
+      connectTimeoutMs,
+      deadline,
+    });
+  } catch {
+    try {
+      spawnHost();
+    } catch {
+      // The retry below produces the typed unavailable error.
+    }
+  }
+
+  const retryDeadline = Math.min(deadline, now() + retryTimeoutMs);
+  let lastError: unknown = new Error("Notification Host is not running");
+  while (retryDeadline > now()) {
+    try {
+      return await attempt(request, {
+        pipeName,
+        connect,
+        now,
+        connectTimeoutMs,
+        deadline: retryDeadline,
+      });
+    } catch (error) {
+      lastError = error;
+      const wait = Math.min(retryPollMs, retryDeadline - now());
+      if (wait <= 0) break;
+      await sleep(wait);
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("Notification Host is not running");
+}
+
 export type RunShimOptions = SendToHostOptions;
 
 function diagnostic(message: string): void {
