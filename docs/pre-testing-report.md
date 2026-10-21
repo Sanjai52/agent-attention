@@ -288,8 +288,8 @@ not modified.
 | PRE-02 — OpenCode history was empty | **PASS** | OpenCode v2 loaded the directory plugin entry and history contained `agent.started` and `agent.completed` for one session |
 | PRE-03 — preview unavailable | **PASS** | Production host accepted sound, desktop, and voice preview requests; sound preview returned `delivered` in the Windows run |
 | PRE-04 — Claude hook runner absent | **PASS** | Packaged `claude-hook` converted raw `SessionStart` JSON into a persisted `agent.started` event |
-| PRE-05 — audio/TTS/toast unavailable | **STILL ENVIRONMENT-LIMITED** | No change; clean temporary profile still requires provider-specific verification |
-| PRE-06 — Windows version metadata discrepancy | **OPEN** | Not changed by this rerun |
+| PRE-05 — audio/TTS/toast unavailable | **PARTIALLY RESOLVED** | Toast registration and TTS now pass on the real profile; audio doctor reporting remains conservative because the sound provider has no non-playing probe |
+| PRE-06 — Windows version metadata discrepancy | **RESOLVED ON THIS MACHINE** | Real doctor reports Windows 11 Home Single Language `10.0.26300`; compatibility coverage on a second Windows build remains a Phase 6 gate |
 | PRE-07 — whoami warning | **PASS / CLEANED** | SID lookup now uses `%SystemRoot%\\System32\\whoami.exe`; the prior warning did not recur in the final test run |
 
 Additional packaging correction: OpenCode v2 requires a local plugin directory.
@@ -306,10 +306,10 @@ Final automated rerun:
 - tests: 57 files / 600 tests PASS
 - production build: PASS
 
-Phase 6 is still not ready because provider capabilities are limited on this
-machine and the Windows OS-reporting clarification remains open. OpenCode event
-delivery, packaged CLI execution, Claude hook delivery, and preview behavior
-are no longer blockers.
+Phase 6 is still not ready for clean-profile and second-build acceptance. The
+real provider blockers on this machine are resolved except that audio doctor
+reporting is conservative and focus support is intentionally false under VS
+Code/OpenCode.
 
 ## Real-profile verification — 2026-10-21
 
@@ -326,12 +326,17 @@ previous contents.
 | Host auto-start from plugin runtime | **FIXED / PASS** | Host now starts under Node when invoked from OpenCode/Bun; direct real status and doctor checks reached IPC successfully |
 | Windows SID pipe resolution | **FIXED / PASS** | Host and shim use `%SystemRoot%\System32\whoami.exe`; no Git `whoami` warning recurred |
 | Sound preview | **PASS** | Real host returned `status: delivered` |
-| Desktop preview | **ENVIRONMENT-LIMITED** | Returned `toast_not_registered`; Windows toast registration is not present on this machine |
-| Voice preview | **ENVIRONMENT-LIMITED** | Returned `status: queued`; TTS is unavailable and no voices were reported |
+| Desktop preview | **PASS** | CLI-managed Windows install registered the AUMID and shortcut; preview reached the desktop provider |
+| Voice preview | **PASS / BOUNDED** | Three SAPI voices are reported and the direct speech script exited `0`; preview remains bounded and may return `queued` while speech completes |
 
 Real diagnostics reported Windows 11 Home Single Language `10.0.26300`, Node
-`v24.20.0`, a healthy schema/database, a reachable named pipe, no audio/TTS,
-unregistered toast, and unsupported focus integration. These are provider or
-machine-state limitations, not event-pipeline failures.
+`v24.20.0`, a healthy schema/database, a reachable named pipe, three installed
+SAPI voices, registered toast identity, conservative audio reporting, and
+unsupported focus integration. Focus is expected under VS Code/OpenCode because
+session-to-window attribution is only supported for Windows Terminal/classic
+console.
 
-The host-runtime fix is covered by the full suite: 57 files / 601 tests passed.
+The host-runtime, provider-wiring, resource-resolution, and installer changes
+are covered by the full suite: 57 files / 601 tests passed. The CLI now owns
+toast registration with `install --host windows` and removal with
+`uninstall --host windows`.
