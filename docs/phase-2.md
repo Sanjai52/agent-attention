@@ -1,7 +1,7 @@
 # Phase 2 — Notification Host and Providers: Implementation Report
 
-**Status: COMPLETE** on `phase-2-host-and-providers`; PR and merge commit are
-recorded below once the branch is merged.
+**Status: COMPLETE** on `phase-2-host-and-providers`; PR #3 is merged with a
+merge commit and the branch is preserved.
 
 | Item | Value |
 |---|---|
@@ -10,7 +10,7 @@ recorded below once the branch is merged.
 | Tasks | 2.1–2.15 complete |
 | Gate | `npm run ci` green: lint, depcheck, all workspace typechecks, unit/integration tests, build |
 | Exit criteria | Providers fail independently; hostile-name suites pass; crash/restart and single-instance pass; shim budget honored; doctor and latency smoke pass |
-| Merge | PR pending (`--merge`, branch preserved) |
+| Merge | [PR #3](https://github.com/Sanjai52/agent-attention/pull/3), merge commit, branch preserved |
 
 ## 1. Outcome
 
@@ -164,5 +164,6 @@ ACL, MCI, and shim-identity commits. The merge commit is created with
 
 ## 7. PR
 
-PR URL, number, and merge commit: pending. This section is updated before the PR
-is merged.
+[PR #3 — phase 2: host and providers](https://github.com/Sanjai52/agent-attention/pull/3)
+was merged with a merge commit. The `phase-2-host-and-providers` branch is
+preserved.
