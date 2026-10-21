@@ -49,6 +49,8 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
         ? { filters: {} }
         : command === "preview"
           ? { eventClass: "completed", channel: "sound", voice: false }
+          : command === "doctor"
+            ? { json }
           : command === "mute"
             ? {}
             : command === "unmute"

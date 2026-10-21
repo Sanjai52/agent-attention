@@ -35,6 +35,8 @@ import {
 } from "@agent-attention/storage";
 
 import type { HostRuntime } from "./lifecycle";
+import { collectDoctorReport } from "./doctor";
+import { defaultPipeName } from "./pipe-server";
 
 export interface DefaultRuntimeOptions {
   dataDir?: string;
@@ -145,6 +147,14 @@ export function createDefaultRuntime(options: DefaultRuntimeOptions = {}): HostR
         ...(filters.since === undefined ? {} : { from: filters.since }),
         ...(filters.until === undefined ? {} : { to: filters.until }),
         ...(filters.limit === undefined ? {} : { limit: filters.limit }),
+      });
+    },
+    async doctor() {
+      return collectDoctorReport({
+        config,
+        store: storeFacade,
+        pipe: { name: defaultPipeName(env), reachable: true, pid: process.pid },
+        platform: { os: process.platform },
       });
     },
     mute() {

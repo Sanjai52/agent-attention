@@ -68,6 +68,7 @@ export interface HostRuntime {
   mute?(until?: string): void | Promise<void>;
   unmute?(): void | Promise<void>;
   shutdown?(): void | Promise<void>;
+  doctor?(json: boolean): unknown | Promise<unknown>;
 }
 
 export interface RunHostOptions {
@@ -452,6 +453,7 @@ export async function runHost(
       isReady: () => readyForRequests,
       ...(runtime.hardenPipeAcl === undefined ? {} : { hardenPipeAcl: runtime.hardenPipeAcl }),
       ...(runtime.history === undefined ? {} : { history: runtime.history }),
+      ...(runtime.doctor === undefined ? {} : { doctor: runtime.doctor }),
       ...(runtime.preview === undefined ? {} : { preview: runtime.preview }),
       ...(runtime.mute === undefined ? {} : { mute: runtime.mute }),
       ...(runtime.unmute === undefined ? {} : { unmute: runtime.unmute }),

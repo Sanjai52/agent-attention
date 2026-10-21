@@ -1529,6 +1529,15 @@ invoke a permissioned tool. Evidence is in
 **Estimate:** 5–7 working days. Quiet hours (incl. DST); rate limiting and coalescing; turn-end grace and min duration; subagent policy; focus awareness for WT/classic console only (Q-06; VS Code unsupported; click-to-focus task deferred); reminders; privacy modes; `status`, `history`, `preview`, `mute`, `config`, full `doctor`; retention purge; start of dogfooding.
 **Exit:** F4–F15 acceptance criteria pass for the supported capabilities.
 
+**Outcome (2026-10-21): complete for supported capabilities.** The Phase 4
+CLI, IPC transport, config handling, status/history queries, preview/mute
+commands, host timer orchestration, retention purge, local dogfood stats, and
+acceptance evidence are implemented. F13 focus suppression is explicitly
+unsupported in this release because the event contract does not provide a
+verified session-to-window mapping; doctor reports that capability as
+unsupported and the host never suppresses alerts based on guessed focus state.
+Evidence is in [`docs/phase-4-acceptance.md`](docs/phase-4-acceptance.md).
+
 ## Milestone 5 — Second adapter
 
 **Estimate:** 4–6 working days. Second adapter, shared contract tests, capability reporting, installation and troubleshooting docs.

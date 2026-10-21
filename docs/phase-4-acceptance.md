@@ -12,7 +12,7 @@ This matrix records the current Phase 4 integration evidence on
 | F9/F10 | Failure and turn-end state/precedence tests | Verified in core suite |
 | F11 | CLI IPC client, JSON output, config commands, exit codes, and doctor report primitives | Verified for implemented commands; doctor host transport remains a follow-up wiring point |
 | F12 | Audio queue, coalescing, and rate limiting tests | Verified in core/notification suite |
-| F13 | Focus provider capability and unsupported-environment reporting | Provider verified; session-to-window host mapping is not available in the current event contract |
+| F13 | Focus provider capability and unsupported-environment reporting | **Unsupported for this release**; session-to-window host mapping is not available in the current event contract, so alerts are never suppressed by focus |
 | F14 | Reminder planning and timer arming | Verified in core; timer delivery callback remains host-runtime supplied |
 | F15 | Standard/discreet privacy rendering and metadata retention | Verified in core/template suite |
 | Retention | Startup and hourly purge scheduling | Implemented; storage safety is covered by existing purge tests |
@@ -26,6 +26,8 @@ This matrix records the current Phase 4 integration evidence on
 - Lint passed.
 - Dependency check passed.
 - Production build passed.
+- Phase 4 acceptance timer test passed for reminder firing; focus fallback is
+  explicitly non-suppressing when unsupported.
 
 The matrix intentionally distinguishes implemented evidence from host-specific
 integration limits. No unsupported capability is claimed as measured behavior.

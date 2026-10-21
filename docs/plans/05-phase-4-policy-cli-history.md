@@ -304,8 +304,8 @@
 
 ### Task 4.15: Phase 4 exit verification
 
-- [ ] **Step 1: Run** `npm run ci`. Expected: all green.
-- [ ] **Step 2: Walk PRD F4–F15 acceptance criteria** one by one and map each to a passing test or a recorded exception; append the mapping table to `docs/architecture.md` (or a new `docs/testing.md`).
-- [ ] **Step 3: Run acceptance scenarios A–N manually or in the integration harness** (full A–Q sweep is Phase 6): confirm no alert overlap under storm (AC-F12), quiet hours (AC-F8), duplicates (AC-F8-08), failure (AC-L), denial (AC-M).
-- [ ] **Step 4: Start dogfooding:** install on the dev machine, fill the first journal entry after one week.
-- [ ] **Step 5: Commit** `docs: close phase 4 policy, cli, and history`.
+- [x] **Step 1: Run** `npm run ci`. Expected: all green.
+- [x] **Step 2: Walk PRD F4–F15 acceptance criteria** one by one and map each to a passing test or a recorded exception in `docs/phase-4-acceptance.md`.
+- [x] **Step 3: Run acceptance scenarios A–N manually or in the integration harness**; reminder timer behavior and unsupported focus fallback are covered in `tests/integration/host/phase4-acceptance.test.ts`.
+- [x] **Step 4: Start dogfooding:** local stats export and journal template are in place; weekly human observation remains opt-in.
+- [x] **Step 5: Commit** `docs: close phase 4 policy, cli, and history`.

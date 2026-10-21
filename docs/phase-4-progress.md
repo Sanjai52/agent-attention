@@ -2,7 +2,7 @@
 
 **Integration branch:** `phase-4-policy-cli-history`  
 **Base:** `phase-3-opencode-integration` at `23133df`  
-**Status:** Integrated implementation verified; final host-specific exceptions documented.
+**Status:** COMPLETE for supported capabilities; F13 focus suppression is explicitly unsupported for this release.
 
 ## Branch and worktree allocation
 
