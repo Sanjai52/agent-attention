@@ -361,17 +361,46 @@ they are not claimed as passed by this report.
 
 | Scenario | Result | Evidence |
 |---|---|---|
-| PT-03B controlled approval | **BLOCKED** | Requires a live model/tool turn; not safely executable while the upstream endpoint is unavailable |
-| PT-03C controlled failure | **BLOCKED BY EXTERNAL SERVICE** | OpenCode reached the real plugin but returned `Endpoint is unavailable` before running `process.exit(23)`; no product failure event was claimed |
-| PT-03D interruption | **BLOCKED** | Requires a live model turn to interrupt; same endpoint dependency |
-| PT-03E concurrent sessions | **BLOCKED** | Requires two live model turns; same endpoint dependency |
+| OpenCode model endpoint | **PASS** | `opencode/big-pickle` completed a deterministic real prompt; prior GitHub Copilot model selections were unavailable in the installed OpenCode integrator |
+| PT-03B controlled approval | **PASS / BOUNDED** | Real `opencode/big-pickle` session ran the harmless command once and returned the requested resolution; the standalone run did not expose a separately persisted `permission.asked`/`permission.replied` pair, so approval-signal recall remains covered by fixtures |
+| PT-03C controlled failure | **PASS / BOUNDED** | Real session executed `node -e "throw new Error('PT03C_CONTROLLED_FAILURE')"` once and reported exit code 1; OpenCode emitted a terminal completion after the model reported the tool failure, consistent with the adapter rule that tool-step failures are not promoted to `agent.failed` |
+| PT-03D interruption | **PASS** | Real session was interrupted during a delayed turn; history persisted `agent.started` followed by inferred `agent.turn_ended`, with no completion |
+| PT-03E concurrent sessions | **PASS** | Two simultaneous real sessions returned `PT03E_A_OK` and `PT03E_B_OK`; history contained two distinct session IDs and independent start/completion pairs |
 | Duplicate event | **PASS** | Two identical packaged Claude hook inputs persisted one `agent.started` identity |
 | Spool recovery | **PASS** | Forced unavailable-pipe input created a spool file; host restart ingested it and consumed the file |
 | Hostile input | **PASS** | Shell/markup-shaped project name was accepted as data; no command executed and no raw shell invocation occurred |
 | Global mute policy | **PASS** | Mute returned `muted: true`, event history remained persisted, and unmute restored `muted: false` |
 | Second Windows build | **BLOCKED** | Only the current Windows 11 build is available in this environment |
 
-The unresolved items are external-environment gates, not implementation defects
-observed in the deterministic host, shim, storage, installer, or provider
-checks. A live model endpoint and a second Windows machine/build are required
-to close them honestly.
+The live OpenCode endpoint and all four PT-03 scenario executions are now
+closed for this Windows 11 machine. The bounded notes above are evidence limits,
+not claims of unsupported behavior: approval signal recall and tool-failure
+classification remain backed by the recorded OpenCode fixtures and adapter
+tests. A second Windows 10/11 machine or CI runner is still required for the
+cross-build gate.
+
+## PRD §19.2 acceptance matrix — validation snapshot — 2026-10-21
+
+| ID | Result | Evidence |
+|---|---|---|
+| A Blocking question | **PASS (fixture/core)** | Authoritative `agent.needs_input` state and notification paths are covered by synthetic fixtures and core tests; OpenCode declares arbitrary input unsupported |
+| B Ordinary progress | **PASS (fixture/core)** | Progress normalizer and no-alert behavior are covered by adapter/core tests |
+| C Approval | **PASS (fixture + live bounded)** | OpenCode approval mapping and resolution fixtures pass; live harmless-command run completed on the working endpoint |
+| D Completion | **PASS (live + fixture)** | PT-03A and PT-03B/03E persisted authoritative start/completion pairs |
+| E Concurrent agents | **PASS (live)** | PT-03E recorded two independent session IDs and terminal pairs |
+| F Quiet hours | **PASS (core/manual)** | Quiet-hour suppression preserves history and suppresses delivery |
+| G Duplicates | **PASS (live + core)** | Duplicate Claude hook and atomic fingerprint tests produce one identity/delivery |
+| H Notification failure | **PASS (core/provider)** | Provider failure isolation tests preserve the event and continue other channels |
+| I Uncertain state | **PASS (core/restart)** | Restart reconciliation maps stale working sessions to `unknown` |
+| J Idle only | **PASS (fixture/core)** | Turn-ended normalization and non-success wording are covered by adapter/core tests |
+| K Classified beats idle | **PASS (core)** | Grace-window precedence tests select classified events over idle |
+| L Failure | **PASS / BOUNDED** | Adapter failure fixtures and provider failure tests pass; live PT-03C confirms controlled tool failure is reported without falsely claiming an agent failure |
+| M Denial | **PASS (fixture/core)** | Denied approval closes the pending request and does not leave approval-waiting state |
+| N Storm | **PASS (core/performance)** | Queue serialization, coalescing, rate-limit, and latency smoke tests pass; a manual 50-event live storm remains Phase 6 performance evidence |
+| O Hostile project name | **PASS (live + security tests)** | Hostile-name live check and Windows provider escaping/argument-boundary tests pass |
+| P Restart | **PASS (live + integration)** | Spool recovery and restart reconciliation checks pass |
+| Q Unsupported environment | **PASS (doctor)** | Doctor reports environment capabilities; current machine correctly reports WSL/SSH/container false and focus unsupported under VS Code/OpenCode |
+
+The matrix is sufficient for pre-testing entry on the current build, but not a
+Phase 6 release sign-off: the second Windows build and the remaining Phase 6
+performance/security measurement work are still open.

@@ -1,6 +1,7 @@
 # Pre-testing Plan
 
-Status: execution in progress on the approved Windows pre-testing profile.
+Status: live scenario execution complete on the approved Windows 11 profile;
+cross-build validation remains open.
 Temporary profiles and documented per-user notification registration are used;
 normal agent configuration is restored after testing.
 
