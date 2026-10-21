@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defaultConfig } from "@agent-attention/contract";
 import type { AgentAttentionConfig } from "@agent-attention/contract";
 import type { SessionRecord } from "@agent-attention/core";
@@ -317,10 +320,35 @@ describe("runHost", () => {
     expect(testRuntime.shutdown).toHaveBeenCalledTimes(1);
   });
 
-  it("returns 1 without a runtime instead of opening anything", async () => {
-    const stderr = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
-    await expect(runHost([], undefined)).resolves.toBe(1);
-    expect(stderr).toHaveBeenCalledWith(expect.stringContaining("runtime unavailable"));
-    stderr.mockRestore();
+  it("composes the production runtime when none is injected", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "agent-attention-host-"));
+    const controller = new AbortController();
+    let ready = false;
+
+    try {
+      const result = await runHost(
+        [
+          "--pipe",
+          `\\\\.\\pipe\\agent-attention-u-test-${process.pid}-${Date.now()}-default`,
+          "--data-dir",
+          dir,
+          "--no-ingest",
+          "--no-idle-exit",
+        ],
+        undefined,
+        {
+          signal: controller.signal,
+          onReady: () => {
+            ready = true;
+            controller.abort();
+          },
+        },
+      );
+
+      expect(ready).toBe(true);
+      expect(result).toBe(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

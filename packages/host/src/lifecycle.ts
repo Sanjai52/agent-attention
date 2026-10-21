@@ -17,6 +17,7 @@ import { join } from "node:path";
 import type {
   AgentAttentionConfig,
   AgentEvent,
+  AgentEventType,
   HistoryFilters,
   PreviewRequest,
 } from "@agent-attention/contract";
@@ -27,11 +28,19 @@ import {
   type Clock,
   type GraceState,
   type PipelineStore,
+  type PlannedNotification,
   type SessionRecord,
 } from "@agent-attention/core";
+import {
+  createAudioQueue,
+  dispatchPlanned,
+  providerAudioPlayer,
+  type DeliveryRecord,
+} from "@agent-attention/notifications";
 
 import type { ProviderSet } from "./connection";
 import { PipeServerError, createPipeServer, defaultPipeName, type PipeServer } from "./pipe-server";
+import { createDefaultRuntime, defaultDataDir } from "./runtime";
 import { ingestSpool } from "./spool-ingest";
 import { createTimerRegistry, type HostTimerInstruction, type TimerRegistry } from "./timers";
 
@@ -80,6 +89,16 @@ export interface ShouldExitInput {
 
 const MINUTE_MS = 60_000;
 const HOST_TIMER_SESSION_KEY = "host";
+
+const EVENT_CONFIG_KEYS: Readonly<
+  Partial<Record<AgentEventType, keyof AgentAttentionConfig["events"]>>
+> = {
+  "agent.needs_input": "needsInput",
+  "agent.needs_approval": "needsApproval",
+  "agent.turn_ended": "turnEnded",
+  "agent.completed": "completed",
+  "agent.failed": "failed",
+};
 
 /**
  * Idle exit is allowed only when no session can still be live and no client is
@@ -214,24 +233,21 @@ async function closeRuntime(runtime: HostRuntime): Promise<void> {
  * or the idle condition. Returns the process exit code: 0 for a normal stop or
  * an already-running instance, 1 for a startup failure.
  *
- * `runtime` is required. The concrete storage/provider composition lives in
- * later Phase 2 tasks; without it the host cannot safely open the database.
+ * `runtime` is injectable for tests and doctor; when omitted, the production
+ * composition root opens storage and the Windows providers lazily.
  */
 export async function runHost(
   argv: readonly string[],
   runtime?: HostRuntime,
   options: RunHostOptions = {},
 ): Promise<number> {
-  if (runtime === undefined) {
-    writeDiagnostic(
-      "runtime unavailable: storage and provider composition is not wired into this build",
-    );
-    return 1;
-  }
-
   const args = parseArgs(argv);
-  const pipeName = stringArg(args.get("pipe")) ?? runtime.pipeName ?? defaultPipeName();
   const dataDir = stringArg(args.get("data-dir"));
+  runtime ??= createDefaultRuntime({
+    dataDir: dataDir ?? defaultDataDir(),
+  });
+
+  const pipeName = stringArg(args.get("pipe")) ?? runtime.pipeName ?? defaultPipeName();
   const spoolDir =
     dataDir === undefined
       ? (stringArg(args.get("spool-dir")) ?? defaultSpoolDir())
@@ -250,8 +266,41 @@ export async function runHost(
     graceMs: runtime.config.events.turnEnded.graceMs,
   };
   const quietHoursMinutes = (now: string): number => localMinutes(now);
-  const submitEvent = async (event: AgentEvent) =>
-    processEvent(event, {
+
+  const queue = createAudioQueue({
+    maxQueueLength: runtime.config.audio.maxQueueLength,
+    play: providerAudioPlayer(runtime.providers),
+  });
+  const deliverySink = runtime.store as PipelineStore & {
+    recordDelivery?: (record: DeliveryRecord) => void;
+  };
+  const dispatch = async (planned: PlannedNotification[]): Promise<void> => {
+    await dispatchPlanned(planned, {
+      providers: runtime.providers,
+      queue,
+      recordDelivery: (record) => {
+        deliverySink.recordDelivery?.(record);
+      },
+      now: () => runtime.clock.now(),
+      resolveSound: (notification) => {
+        const key = EVENT_CONFIG_KEYS[notification.eventType];
+        const eventConfig = key === undefined ? undefined : runtime.config.events[key];
+        return {
+          soundId: eventConfig?.sound.soundId ?? "attention",
+          volume: eventConfig?.sound.volume ?? 35,
+        };
+      },
+      resolveSpeech: (notification) => ({
+        text: notification.rendered?.speech ?? "",
+        voiceId: runtime.config.voice.voiceId,
+        volume: runtime.config.voice.volume,
+        rate: runtime.config.voice.rate,
+      }),
+    });
+  };
+
+  const submitEvent = async (event: AgentEvent) => {
+    const result = processEvent(event, {
       store: runtime.store,
       config: runtime.config,
       clock: runtime.clock,
@@ -259,6 +308,17 @@ export async function runHost(
       quietHoursMinutes,
       grace,
     });
+
+    if (result.status !== "rejected" && result.planned.length > 0) {
+      void dispatch(result.planned).catch((error: unknown) => {
+        writeDiagnostic(
+          error instanceof Error ? `dispatch failed: ${error.message}` : "dispatch failed",
+        );
+      });
+    }
+
+    return result;
+  };
 
   let readyForRequests = false;
   let lastActivityAt = runtime.clock.nowMs();
@@ -368,6 +428,7 @@ export async function runHost(
       ...(runtime.preview === undefined ? {} : { preview: runtime.preview }),
       ...(runtime.mute === undefined ? {} : { mute: runtime.mute }),
       ...(runtime.unmute === undefined ? {} : { unmute: runtime.unmute }),
+      dispatch,
       onActivity: markActivity,
       onConnectionChange: () => {
         markActivity();

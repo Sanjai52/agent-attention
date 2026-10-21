@@ -13,6 +13,7 @@ import { connect as netConnect, type Socket } from "node:net";
 import { randomBytes } from "node:crypto";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryPipelineStore } from "../../helpers/memory-store";
+import { makeEvent } from "../../unit/core/event-factory";
 
 const NOW = "2026-10-21T10:00:00Z";
 
@@ -89,6 +90,7 @@ function connection(options: {
   store?: MemoryPipelineStore;
   config?: AgentAttentionConfig;
   shutdown?: () => void;
+  dispatch?: Parameters<typeof createConnection>[0]["dispatch"];
 } = {}) {
   const store = options.store ?? new MemoryPipelineStore();
   return {
@@ -99,6 +101,7 @@ function connection(options: {
       providers: providers(),
       clock: clock(),
       ...(options.shutdown === undefined ? {} : { shutdown: options.shutdown }),
+      ...(options.dispatch === undefined ? {} : { dispatch: options.dispatch }),
     }),
   };
 }
@@ -142,6 +145,29 @@ describe("connection dispatcher", () => {
     }
     expect(store.events).toHaveLength(1);
     expect(store.events[0]?.event.eventId).toBe("event-1");
+  });
+
+  it("persists the event and session before dispatching notifications", async () => {
+    let eventsAtDispatch = -1;
+    let sessionsAtDispatch = -1;
+    let plannedAtDispatch = -1;
+    const { connection: conn, store } = connection({
+      dispatch: (planned) => {
+        eventsAtDispatch = store.events.length;
+        sessionsAtDispatch = store.sessions.size;
+        plannedAtDispatch = planned.length;
+      },
+    });
+    await conn.handleRequest(hello());
+
+    const response = await conn.handleRequest(
+      submit(makeEvent({ eventType: "agent.needs_input", eventId: "needs-input-1" })),
+    );
+
+    expect(response.ok).toBe(true);
+    expect(eventsAtDispatch).toBe(1);
+    expect(sessionsAtDispatch).toBe(1);
+    expect(plannedAtDispatch).toBeGreaterThan(0);
   });
 
   it("rejects an event whose adapterId differs from the connection identity", async () => {

@@ -162,6 +162,7 @@ export function createPipeServer(options: PipeServerOptions): PipeServer {
       ...(options.mute === undefined ? {} : { mute: options.mute }),
       ...(options.unmute === undefined ? {} : { unmute: options.unmute }),
       ...(options.shutdown === undefined ? {} : { shutdown: options.shutdown }),
+      ...(options.dispatch === undefined ? {} : { dispatch: options.dispatch }),
       ...(options.onActivity === undefined ? {} : { onActivity: options.onActivity }),
     });
 

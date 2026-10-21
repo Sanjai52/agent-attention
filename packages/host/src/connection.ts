@@ -20,6 +20,7 @@ import type {
   PreviewRequest,
 } from "@agent-attention/contract";
 import { IPC_PROTOCOL_VERSION, type IpcRequestKind } from "@agent-attention/contract";
+import type { ProviderSet } from "@agent-attention/notifications";
 import {
   RollingRateLimiter,
   processEvent,
@@ -27,44 +28,16 @@ import {
   type GraceState,
   type PipelineDiagnostic,
   type PipelineStore,
+  type PlannedNotification,
 } from "@agent-attention/core";
 
-export interface ProviderResult {
-  status: "delivered" | "failed" | "unavailable";
-  errorCode?: string;
-}
-
-export interface SoundProviderLike {
-  play(request: {
-    soundId: string;
-    volume: number;
-    filePath?: string;
-  }): Promise<ProviderResult>;
-}
-
-export interface SpeechProviderLike {
-  speak(request: {
-    text: string;
-    voiceId: string | null;
-    volume: number;
-    rate: number;
-  }): Promise<ProviderResult>;
-}
-
-export interface DesktopProviderLike {
-  show(request: { title: string; body: string }): Promise<ProviderResult>;
-}
-
-/**
- * Structural provider set used by the host. Task 2.8's notifications package
- * defines the concrete interfaces; keeping this structural avoids a host
- * dependency on a package that does not exist yet.
- */
-export interface ProviderSet {
-  sound: SoundProviderLike;
-  voice: SpeechProviderLike;
-  desktop: DesktopProviderLike;
-}
+export type {
+  DesktopProvider,
+  ProviderResult,
+  ProviderSet,
+  SoundProvider,
+  SpeechProvider,
+} from "@agent-attention/notifications";
 
 export interface ConnectionDependencies {
   store: PipelineStore;
@@ -81,6 +54,8 @@ export interface ConnectionDependencies {
   mute?: (until?: string) => void | Promise<void>;
   unmute?: () => void | Promise<void>;
   shutdown?: () => void | Promise<void>;
+  /** Persist-then-dispatch hook owned by the host lifecycle (Task 2.9). */
+  dispatch?: (planned: PlannedNotification[]) => void | Promise<void>;
   onActivity?: () => void;
 }
 
@@ -198,6 +173,25 @@ export function createConnection(deps: ConnectionDependencies): HostConnection {
 
     if (result.status === "rejected") {
       return failure(request.id, "rejected_event", rejectionMessage(result.diagnostics));
+    }
+
+    // The pipeline has already persisted the event and session before this
+    // hook runs (PRD §14.2 step 8). Delivery runs independently so a slow
+    // PowerShell provider never delays the IPC acknowledgement.
+    if (deps.dispatch !== undefined && result.planned.length > 0) {
+      try {
+        void Promise.resolve(deps.dispatch(result.planned)).catch((error: unknown) => {
+          deps.store.recordDiagnostic({
+            code: "internal",
+            message: error instanceof Error ? error.message : "dispatch failed",
+          });
+        });
+      } catch (error) {
+        deps.store.recordDiagnostic({
+          code: "internal",
+          message: error instanceof Error ? error.message : "dispatch failed",
+        });
+      }
     }
 
     return success(request.id, result);
