@@ -22,6 +22,7 @@ import {
   createWindowsSoundProvider,
   createWindowsSpeechProvider,
   createWindowsToastProvider,
+  hardenNamedPipeAcl,
 } from "@agent-attention/platform-windows";
 import {
   createPipelineStore,
@@ -127,6 +128,7 @@ export function createDefaultRuntime(options: DefaultRuntimeOptions = {}): HostR
     config,
     providers,
     clock,
+    hardenPipeAcl: hardenNamedPipeAcl,
     migrate() {
       getStore();
     },
