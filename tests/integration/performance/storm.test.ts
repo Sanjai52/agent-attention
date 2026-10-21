@@ -257,7 +257,7 @@ describe.skipIf(process.platform !== "win32")("performance storm evidence", () =
       occurredAt: "2026-10-21T10:00:00.000Z",
       receivedAt: "2026-10-21T10:00:00.000Z",
     });
-    const alertResponse = await client.send(submit(alert, "storm-alert-request"));
+    const alertResponse = await client!.send(submit(alert, "storm-alert-request"));
     await waitFor(() => dispatchTimes.length > 0);
     const receiptToDispatchP95 = Math.max(...dispatchTimes) - alertStartedAt;
     const stored = store!.listEvents();
