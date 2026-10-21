@@ -6,7 +6,7 @@ import type {
   IpcRequest,
   IpcResponse,
 } from "@agent-attention/contract";
-import type { Clock, PipelineStore, ProviderSet } from "@agent-attention/host";
+import type { Clock, ProviderSet } from "@agent-attention/host";
 import { createConnection, createPipeServer, pipeNameForSid } from "@agent-attention/host";
 import { connect as netConnect, type Socket } from "node:net";
 import { randomBytes } from "node:crypto";
