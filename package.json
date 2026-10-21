@@ -14,7 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "deps:check": "depcheck --ignores=@agent-attention/*,typescript,tsup,vitest,eslint,prettier,@eslint/js,typescript-eslint,@types/node,tsx",
+    "deps:check": "depcheck --ignore-patterns=spikes/**,ref/** --ignores=@agent-attention/*,typescript,tsup,vitest,eslint,prettier,@eslint/js,typescript-eslint,@types/node,tsx",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "ci": "npm run lint && npm run deps:check && npm run typecheck && npm run test && npm run build"
