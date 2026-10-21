@@ -276,3 +276,36 @@ authorized as passing:
 No product code was changed during this report pass. Any fix should be created
 on a new branch from main, verified, reviewed, and merged only after approval.
 
+## Rerun after blocker fixes — 2026-10-21
+
+The rerun was performed on the existing `pre-testing` branch using temporary
+Windows profiles and a unique named pipe. The real OpenCode configuration was
+not modified.
+
+| Previous finding | Rerun result | Evidence |
+|---|---|---|
+| PRE-01 — built CLI was not self-contained | **PASS** | Bundled `packages/cli/dist/index.js` ran `--help`, OpenCode install/uninstall, and `claude-hook` without source-module errors |
+| PRE-02 — OpenCode history was empty | **PASS** | OpenCode v2 loaded the directory plugin entry and history contained `agent.started` and `agent.completed` for one session |
+| PRE-03 — preview unavailable | **STILL BLOCKED** | Production host still returns `preview is not available in this host` |
+| PRE-04 — Claude hook runner absent | **PASS** | Packaged `claude-hook` converted raw `SessionStart` JSON into a persisted `agent.started` event |
+| PRE-05 — audio/TTS/toast unavailable | **STILL ENVIRONMENT-LIMITED** | No change; clean temporary profile still requires provider-specific verification |
+| PRE-06 — Windows version metadata discrepancy | **OPEN** | Not changed by this rerun |
+| PRE-07 — whoami warning | **PASS / CLEANED** | SID lookup now uses `%SystemRoot%\\System32\\whoami.exe`; the prior warning did not recur in the final test run |
+
+Additional packaging correction: OpenCode v2 requires a local plugin directory.
+The previous file entry `adapters/opencode/dist/index.js` produced the host log
+warning `configured plugin path must be a directory`. The supported entry is
+the packaged directory `adapters/opencode/plugin`, whose `index.js` forwards to
+the built adapter bundle.
+
+Final automated rerun:
+
+- lint: PASS
+- dependency check: PASS
+- typecheck: PASS
+- tests: 57 files / 600 tests PASS
+- production build: PASS
+
+Phase 6 is still not ready because preview behavior and the Windows provider
+and OS-reporting follow-ups remain unresolved. OpenCode event delivery,
+packaged CLI execution, and Claude hook delivery are no longer blockers.

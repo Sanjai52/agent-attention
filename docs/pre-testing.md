@@ -76,7 +76,7 @@ $repo = (Get-Location).Path
 $profile = Join-Path $env:TEMP "agent-attention-pretest"
 $config = Join-Path $profile "opencode.jsonc"
 $state = Join-Path $profile "install-state"
-$plugin = (Resolve-Path (Join-Path $repo "adapters\opencode\dist\index.js")).Path
+$plugin = (Resolve-Path (Join-Path $repo "adapters\opencode\plugin")).Path
 New-Item -ItemType Directory -Force -Path $profile | Out-Null
 node "$repo\packages\cli\dist\index.js" install --host opencode --config $config --plugin $plugin --state-dir $state --json
 ```

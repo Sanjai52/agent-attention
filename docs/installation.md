@@ -17,7 +17,7 @@ Source of truth: `PRD.md` §7.1, §18.4.
    `agent-attention uninstall --host claude-code --command "agent-attention claude-hook"`.
 5. Verify the host and adapter matrix with `agent-attention doctor --json`.
 6. Install the OpenCode plugin through the CLI:
-   `agent-attention install --host opencode --config <opencode.jsonc> --plugin <absolute-plugin-path>`.
+   `agent-attention install --host opencode --config <opencode.jsonc> --plugin <absolute-plugin-directory>`.
    `--config` defaults to the host's configured path; `--state-dir` may be used
    for an isolated profile. Uninstall uses the same host/config options and
    removes only the owned plugin entry.

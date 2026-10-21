@@ -1,4 +1,5 @@
 import type { IpcRequestKind, RequestPayloads } from "@agent-attention/contract";
+import { runClaudeHookFromStdin } from "@agent-attention/adapter-claude-code";
 import { createIpcClient, defaultIpcOptions } from "./ipc-client";
 import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
@@ -30,7 +31,7 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
     emit(HELP, { json: false, io });
     return 0;
   }
-  if (!new Set(["status", "history", "preview", "doctor", "config", "mute", "unmute", "install", "uninstall"]).has(command)) {
+  if (!new Set(["status", "history", "preview", "doctor", "config", "mute", "unmute", "install", "uninstall", "claude-hook"]).has(command)) {
     error(io, `Unknown command: ${command}\n${HELP}`);
     return 2;
   }
@@ -79,6 +80,12 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
       error(io, cause instanceof Error ? cause.message : `${command} failed`);
       return 4;
     }
+  }
+
+  if (command === "claude-hook") {
+    return runClaudeHookFromStdin({
+      ...(options.env === undefined ? {} : { pipeName: options.env.AGENT_ATTENTION_PIPE }),
+    });
   }
 
   const client = createIpcClient(defaultIpcOptions(options.env));
