@@ -5,6 +5,7 @@ import {
   createFixedScriptRunner,
   type SpawnedProcess,
   type SpawnProcess,
+  type SpawnProcessOptions,
 } from "@agent-attention/platform-windows";
 
 class FakeStdin {
@@ -59,7 +60,7 @@ describe("createFixedScriptRunner", () => {
     const calls: Array<{
       command: string;
       args: string[];
-      options: Record<string, unknown>;
+      options: SpawnProcessOptions;
     }> = [];
     const spawnProcess: SpawnProcess = (command, args, options) => {
       calls.push({ command, args, options });
