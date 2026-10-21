@@ -1,9 +1,9 @@
 # Troubleshooting
 
 > Latency smoke (Phase 2, Windows): receipt→response p95 **40.7 ms** in the
-> recorded isolated run and **80.3 ms** in the final full gate for 500
+> recorded isolated run and **75.3–80.3 ms** in the final full-gate runs for 500
 > `agent.progress` events (**147.5 ms** in a separate parallel-load run);
-> receipt→dispatch p95 **3.4–3.6 ms** for 50 `agent.needs_input` events.
+> receipt→dispatch p95 **3.4–4.2 ms** for 50 `agent.needs_input` events.
 > Target: p95 < 500 ms.
 
 Status: Phase 2 doctor glossary and host checks implemented; CLI rendering lands

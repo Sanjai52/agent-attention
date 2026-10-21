@@ -107,8 +107,8 @@ From `docs/spikes/s2-results.md` and the doctor smoke:
 |---|---|
 | Receipt→response, 500 `agent.progress` events, isolated | p50 **18.87 ms**, p95 **40.70 ms** |
 | Receipt→dispatch, 50 `agent.needs_input` events, isolated | p50 **1.31 ms**, p95 **3.62 ms** |
-| Receipt→response, final full gate | p95 **80.27 ms** |
-| Receipt→dispatch, final full gate | p95 **3.42 ms** |
+| Receipt→response, final full-gate runs | p95 **75.31–80.27 ms** |
+| Receipt→dispatch, final full-gate runs | p95 **3.42–4.16 ms** |
 | Receipt→response under a separate parallel-load run | p95 **147.48 ms** |
 | Receipt→dispatch under a separate parallel-load run | p95 **4.87 ms** |
 | Target | p95 < 500 ms |
