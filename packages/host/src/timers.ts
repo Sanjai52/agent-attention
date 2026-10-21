@@ -9,7 +9,7 @@
 
 import type { TimerInstruction, TimerKind } from "@agent-attention/core";
 
-export type HostTimerKind = TimerKind | "host_exit";
+export type HostTimerKind = TimerKind | "host_exit" | "retention_purge";
 
 export interface HostTimerInstruction extends Omit<TimerInstruction, "kind"> {
   kind: HostTimerKind;
