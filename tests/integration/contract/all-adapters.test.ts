@@ -36,7 +36,7 @@ describe("shared adapter contract", () => {
     const openCodeEvents = openCode.normalize({ id: "evt-start", created: Date.parse("2026-10-21T10:00:00.000Z"), type: "session.execution.started", durable: { aggregateID: "same-session", seq: 1, version: 1 }, data: { sessionID: "same-session" } });
     const all = [...claudeEvents, ...openCodeEvents];
     assertContract(claudeCapabilities(), claudeEvents);
-    assertContract(openCodeCapabilities(), openCodeEvents);
+    assertContract(openCodeCapabilities("2.0.32"), openCodeEvents);
     expect(all.map((event) => event.source.adapterId)).toEqual(["claude-code", "opencode"]);
     expect(new Set(all.map((event) => `${event.source.adapterId}:${event.session.sessionId}`)).size).toBe(2);
   });
