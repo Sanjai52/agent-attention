@@ -1,10 +1,8 @@
-import { fileURLToPath } from "node:url";
 import { runFixedScript, type RunFixedScript } from "./powershell";
+import { resolvePlatformResource } from "./resources";
 
 export const DEFAULT_TOAST_APP_ID = "AgentAttention.Desktop";
-export const DEFAULT_TOAST_SCRIPT_PATH = fileURLToPath(
-  new URL("../scripts/toast.ps1", import.meta.url),
-);
+export const DEFAULT_TOAST_SCRIPT_PATH = resolvePlatformResource("scripts/toast.ps1");
 export const DEFAULT_TOAST_DISPLAY_NAME = "Agent Attention";
 
 const APP_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;

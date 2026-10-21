@@ -1,11 +1,9 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { runFixedScript, type RunFixedScript } from "./powershell";
+import { resolvePlatformResource } from "./resources";
 import type { FocusProvider, ForegroundWindow } from "./provider-types";
 
-export const DEFAULT_FOCUS_SCRIPT_PATH = fileURLToPath(
-  new URL("../scripts/focus.ps1", import.meta.url),
-);
+export const DEFAULT_FOCUS_SCRIPT_PATH = resolvePlatformResource("scripts/focus.ps1");
 
 export interface WindowsFocusProviderOptions {
   scriptPath?: string;

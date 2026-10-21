@@ -5,5 +5,6 @@ const EVENT_CLASSES = new Set<PreviewEventClass>(["needsInput", "needsApproval",
 export function parsePreviewArgs(args: string[]): PreviewRequest {
   const eventClass = args.find((item) => !item.startsWith("-")) as PreviewEventClass | undefined;
   if (eventClass === undefined || !EVENT_CLASSES.has(eventClass)) throw new Error("unknown preview event class");
-  return { eventClass, channel: args.includes("--voice") ? "voice" : "sound", voice: args.includes("--voice") };
+  const channel = args.includes("--voice") ? "voice" : args.includes("--desktop") ? "desktop" : "sound";
+  return { eventClass, channel, voice: channel === "voice" };
 }

@@ -89,7 +89,10 @@ export function currentUserSid(env: NodeJS.ProcessEnv = process.env): string | u
   }
 
   try {
-    const output = execFileSync("whoami.exe", ["/user", "/fo", "csv", "/nh"], {
+    const whoami = env.SystemRoot === undefined
+      ? "whoami.exe"
+      : `${env.SystemRoot}\\System32\\whoami.exe`;
+    const output = execFileSync(whoami, ["/user", "/fo", "csv", "/nh"], {
       encoding: "utf8",
       windowsHide: true,
       timeout: 2_000,

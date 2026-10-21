@@ -69,6 +69,8 @@ export interface WindowsToastProviderOptions {
 export interface WindowsToastProvider extends DesktopProvider {
   /** Re-check registration after `install`/`uninstall`. */
   refreshRegistration(): void;
+  /** Report the current per-user toast identity registration state. */
+  isRegistered(): Promise<boolean>;
 }
 
 type RegistrationState = "registered" | "unregistered" | "error";
@@ -114,6 +116,10 @@ export function createWindowsToastProvider(
   return {
     refreshRegistration(): void {
       registration = undefined;
+    },
+
+    async isRegistered(): Promise<boolean> {
+      return (await ensureRegistration()) === "registered";
     },
 
     async show(request: DesktopRequest): Promise<ProviderResult> {

@@ -1,7 +1,9 @@
 # Pre-testing Plan
 
-Status: planning only. No live host, user profile, notification device, or
-agent configuration should be changed until this document is approved.
+Status: live scenario execution complete on the approved Windows 11 profile;
+cross-build validation remains open.
+Temporary profiles and documented per-user notification registration are used;
+normal agent configuration is restored after testing.
 
 ## Purpose
 
@@ -15,16 +17,14 @@ capabilities or mark unsupported behavior as successful.
 
 ## Current entry conditions
 
-- Branch: `pre-testing`.
+- Branch: `pre-testing-remaining-blockers`.
 - Phase 5 implementation is merged in `main`.
-- Local automated gate: lint, dependency check, typecheck, 57 test files,
-  600 tests, and build passed on the preceding branch.
+- Local automated gate: lint, typecheck, 57 test files, 601 tests, and changed
+  workspace builds pass.
 - Windows and Node requirements: Windows 10/11, Node `24.20.x`.
 - OpenCode CLI installation is available.
-- Claude Code fixture and normalizer tests are available, but live Claude hook
-  execution is currently blocked because no `claude-hook` executable/runner is
-  shipped by the repository. The installer must not be treated as live-ready
-  until that runner exists and is tested.
+- The packaged `claude-hook` runner is available and has passed a real
+  `SessionStart` invocation against a temporary settings installation.
 
 ## What will be tested
 
@@ -196,18 +196,16 @@ For each scenario, capture the expected and actual result:
 
 ## Claude Code status
 
-The current repository can install Claude hook configuration and normalize
-recorded hook events, but it does not yet provide the executable command that
-Claude would invoke for raw hook JSON. Therefore this command is not approved
-for live use yet:
+The repository provides the executable command that Claude invokes for raw hook
+JSON and it has passed a temporary settings installation:
 
 ```powershell
 agent-attention claude-hook
 ```
 
-Before Claude live pre-testing, the missing hook runner must be implemented,
-covered by tests, and verified with a temporary Claude configuration. Until
-then, Claude testing is limited to fixture replay and capability review.
+The temporary settings file was restored byte-for-byte after the test. A full
+interactive Claude prompt remains a manual acceptance scenario, but hook
+transport and normalization are no longer blocked.
 
 ## Result recording format
 

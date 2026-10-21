@@ -3,6 +3,7 @@ import {
   type FixedScriptResult,
   type RunFixedScript,
 } from "./powershell";
+import { resolvePlatformResource } from "./resources";
 import type { ProviderResult, SpeechProvider, SpeechRequest } from "./provider-types";
 
 export interface VoiceInfo {
@@ -28,6 +29,9 @@ export interface WindowsSpeechProviderOptions {
   timeoutMs?: number;
   runScript?: RunFixedScript;
 }
+
+export const DEFAULT_SPEECH_SCRIPT_PATH = resolvePlatformResource("scripts/speak.ps1");
+export const DEFAULT_VOICES_SCRIPT_PATH = resolvePlatformResource("scripts/list-voices.ps1");
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 

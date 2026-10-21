@@ -3,9 +3,16 @@ import { runClaudeHookFromStdin } from "@agent-attention/adapter-claude-code";
 import { createIpcClient, defaultIpcOptions } from "./ipc-client";
 import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
+import { parsePreviewArgs } from "./commands/preview";
 import { runConfig } from "./commands/config";
 import { defaultClaudeCodeSettingsPath, installClaudeCode, uninstallClaudeCode } from "./install/claude-code";
 import { defaultOpenCodeConfigPath, installOpenCode, uninstallOpenCode } from "./install/opencode";
+import {
+  DEFAULT_TOAST_APP_ID,
+  DEFAULT_TOAST_DISPLAY_NAME,
+  registerToastIdentity,
+  unregisterToastIdentity,
+} from "@agent-attention/platform-windows";
 
 export interface RunCliOptions {
   io?: CliIo;
@@ -70,6 +77,19 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
         report = command === "install"
           ? await installOpenCode({ hostConfigPath, pluginEntry: pluginEntry!, stateDir, dryRun: has(argv, "--dry-run") })
           : await uninstallOpenCode({ hostConfigPath, stateDir, purge: has(argv, "--purge") });
+      } else if (host === "windows") {
+        report = command === "install"
+          ? {
+              changed: (await registerToastIdentity({
+                appId: DEFAULT_TOAST_APP_ID,
+                displayName: DEFAULT_TOAST_DISPLAY_NAME,
+              })).created.length > 0,
+              entries: [DEFAULT_TOAST_APP_ID],
+            }
+          : (await unregisterToastIdentity(DEFAULT_TOAST_APP_ID), {
+              changed: true,
+              entries: [DEFAULT_TOAST_APP_ID],
+            });
       } else {
         error(io, `Unsupported installer host: ${host}`);
         return 2;
@@ -95,14 +115,14 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
       : command === "history"
         ? { filters: {} }
         : command === "preview"
-          ? { eventClass: "completed", channel: "sound", voice: false }
+          ? parsePreviewArgs(argv.slice(1))
           : command === "doctor"
             ? { json }
           : command === "mute"
             ? {}
             : command === "unmute"
               ? {}
-              : {};
+            : {};
     const response = options.request
       ? await options.request(command as IpcRequestKind, payload as never)
       : await client.request(command as IpcRequestKind, payload as never);

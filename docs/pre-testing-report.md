@@ -286,10 +286,10 @@ not modified.
 |---|---|---|
 | PRE-01 — built CLI was not self-contained | **PASS** | Bundled `packages/cli/dist/index.js` ran `--help`, OpenCode install/uninstall, and `claude-hook` without source-module errors |
 | PRE-02 — OpenCode history was empty | **PASS** | OpenCode v2 loaded the directory plugin entry and history contained `agent.started` and `agent.completed` for one session |
-| PRE-03 — preview unavailable | **STILL BLOCKED** | Production host still returns `preview is not available in this host` |
+| PRE-03 — preview unavailable | **PASS** | Production host accepted sound, desktop, and voice preview requests; sound preview returned `delivered` in the Windows run |
 | PRE-04 — Claude hook runner absent | **PASS** | Packaged `claude-hook` converted raw `SessionStart` JSON into a persisted `agent.started` event |
-| PRE-05 — audio/TTS/toast unavailable | **STILL ENVIRONMENT-LIMITED** | No change; clean temporary profile still requires provider-specific verification |
-| PRE-06 — Windows version metadata discrepancy | **OPEN** | Not changed by this rerun |
+| PRE-05 — audio/TTS/toast unavailable | **PARTIALLY RESOLVED** | Toast registration and TTS now pass on the real profile; audio doctor reporting remains conservative because the sound provider has no non-playing probe |
+| PRE-06 — Windows version metadata discrepancy | **RESOLVED ON THIS MACHINE** | Real doctor reports Windows 11 Home Single Language `10.0.26300`; compatibility coverage on a second Windows build remains a Phase 6 gate |
 | PRE-07 — whoami warning | **PASS / CLEANED** | SID lookup now uses `%SystemRoot%\\System32\\whoami.exe`; the prior warning did not recur in the final test run |
 
 Additional packaging correction: OpenCode v2 requires a local plugin directory.
@@ -306,6 +306,101 @@ Final automated rerun:
 - tests: 57 files / 600 tests PASS
 - production build: PASS
 
-Phase 6 is still not ready because preview behavior and the Windows provider
-and OS-reporting follow-ups remain unresolved. OpenCode event delivery,
-packaged CLI execution, and Claude hook delivery are no longer blockers.
+Phase 6 is still not ready for clean-profile and second-build acceptance. The
+real provider blockers on this machine are resolved except that audio doctor
+reporting is conservative and focus support is intentionally false under VS
+Code/OpenCode.
+
+## Real-profile verification — 2026-10-21
+
+The installed OpenCode v2 plugin and packaged Claude hook were exercised against
+the real Windows user profiles, then removed again. The original Claude settings
+file was restored byte-for-byte and the OpenCode configuration returned to its
+previous contents.
+
+| Real-profile check | Result | Evidence |
+|---|---|---|
+| OpenCode plugin loaded | **PASS** | OpenCode v2 loaded `adapters/opencode/plugin/index.js` from the installed directory entry |
+| OpenCode lifecycle delivery | **PASS** | Real prompt persisted authoritative `agent.started` and `agent.completed` records for adapter `opencode` |
+| Claude hook delivery | **PASS** | Real settings-installed command persisted authoritative `agent.started` for `real-claude-pretest-fixed` under adapter `claude-code` |
+| Host auto-start from plugin runtime | **FIXED / PASS** | Host now starts under Node when invoked from OpenCode/Bun; direct real status and doctor checks reached IPC successfully |
+| Windows SID pipe resolution | **FIXED / PASS** | Host and shim use `%SystemRoot%\System32\whoami.exe`; no Git `whoami` warning recurred |
+| Sound preview | **PASS** | Real host returned `status: delivered` |
+| Desktop preview | **PASS** | CLI-managed Windows install registered the AUMID and shortcut; preview reached the desktop provider |
+| Voice preview | **PASS / BOUNDED** | Three SAPI voices are reported and the direct speech script exited `0`; preview remains bounded and may return `queued` while speech completes |
+
+Real diagnostics reported Windows 11 Home Single Language `10.0.26300`, Node
+`v24.20.0`, a healthy schema/database, a reachable named pipe, three installed
+SAPI voices, registered toast identity, conservative audio reporting, and
+unsupported focus integration. Focus is expected under VS Code/OpenCode because
+session-to-window attribution is only supported for Windows Terminal/classic
+console.
+
+The host-runtime, provider-wiring, resource-resolution, and installer changes
+are covered by the full suite: 57 files / 601 tests passed. The CLI now owns
+toast registration with `install --host windows` and removal with
+`uninstall --host windows`.
+
+## Approved temporary-profile execution — 2026-10-21
+
+| Scenario | Result | Evidence |
+|---|---|---|
+| PT-01 baseline | **PASS** | Node `v24.20.0`, npm `11.19.0`, Claude `2.1.306`, OpenCode `2.0.32`, Windows 11 `10.0.26300` |
+| PT-02 install/idempotence/uninstall | **PASS** | First install changed the temporary config, second returned `changed: false`, and uninstall preserved unrelated `pretestMarker` |
+| PT-03A ordinary completion | **PASS** | Temporary profile returned `PT03A_COMPLETION_OK`; history persisted authoritative OpenCode start/completion events |
+| PT-04 delivery | **PASS** | Toast registered and desktop preview submitted; SAPI voice probe found three voices; sound preview delivered |
+| Claude SessionStart hook | **PASS** | Temporary settings hook persisted `agent.started` for `real-claude-pretest-fixed`; settings restored afterward |
+
+PT-03A took approximately two minutes because the selected model backend was
+slow, but the deterministic response and lifecycle pair completed successfully.
+PT-03B approval, PT-03C failure, PT-03D interruption, PT-03E concurrency, and
+the policy/recovery/security scenarios remain the next manual execution block;
+they are not claimed as passed by this report.
+
+## Remaining-scenario execution — 2026-10-21
+
+| Scenario | Result | Evidence |
+|---|---|---|
+| OpenCode model endpoint | **PASS** | `opencode/big-pickle` completed a deterministic real prompt; prior GitHub Copilot model selections were unavailable in the installed OpenCode integrator |
+| PT-03B controlled approval | **PASS / BOUNDED** | Real `opencode/big-pickle` session ran the harmless command once and returned the requested resolution; the standalone run did not expose a separately persisted `permission.asked`/`permission.replied` pair, so approval-signal recall remains covered by fixtures |
+| PT-03C controlled failure | **PASS / BOUNDED** | Real session executed `node -e "throw new Error('PT03C_CONTROLLED_FAILURE')"` once and reported exit code 1; OpenCode emitted a terminal completion after the model reported the tool failure, consistent with the adapter rule that tool-step failures are not promoted to `agent.failed` |
+| PT-03D interruption | **PASS** | Real session was interrupted during a delayed turn; history persisted `agent.started` followed by inferred `agent.turn_ended`, with no completion |
+| PT-03E concurrent sessions | **PASS** | Two simultaneous real sessions returned `PT03E_A_OK` and `PT03E_B_OK`; history contained two distinct session IDs and independent start/completion pairs |
+| Duplicate event | **PASS** | Two identical packaged Claude hook inputs persisted one `agent.started` identity |
+| Spool recovery | **PASS** | Forced unavailable-pipe input created a spool file; host restart ingested it and consumed the file |
+| Hostile input | **PASS** | Shell/markup-shaped project name was accepted as data; no command executed and no raw shell invocation occurred |
+| Global mute policy | **PASS** | Mute returned `muted: true`, event history remained persisted, and unmute restored `muted: false` |
+| Second Windows build | **BLOCKED** | Only the current Windows 11 build is available in this environment |
+
+The live OpenCode endpoint and all four PT-03 scenario executions are now
+closed for this Windows 11 machine. The bounded notes above are evidence limits,
+not claims of unsupported behavior: approval signal recall and tool-failure
+classification remain backed by the recorded OpenCode fixtures and adapter
+tests. A second Windows 10/11 machine or CI runner is still required for the
+cross-build gate.
+
+## PRD §19.2 acceptance matrix — validation snapshot — 2026-10-21
+
+| ID | Result | Evidence |
+|---|---|---|
+| A Blocking question | **PASS (fixture/core)** | Authoritative `agent.needs_input` state and notification paths are covered by synthetic fixtures and core tests; OpenCode declares arbitrary input unsupported |
+| B Ordinary progress | **PASS (fixture/core)** | Progress normalizer and no-alert behavior are covered by adapter/core tests |
+| C Approval | **PASS (fixture + live bounded)** | OpenCode approval mapping and resolution fixtures pass; live harmless-command run completed on the working endpoint |
+| D Completion | **PASS (live + fixture)** | PT-03A and PT-03B/03E persisted authoritative start/completion pairs |
+| E Concurrent agents | **PASS (live)** | PT-03E recorded two independent session IDs and terminal pairs |
+| F Quiet hours | **PASS (core/manual)** | Quiet-hour suppression preserves history and suppresses delivery |
+| G Duplicates | **PASS (live + core)** | Duplicate Claude hook and atomic fingerprint tests produce one identity/delivery |
+| H Notification failure | **PASS (core/provider)** | Provider failure isolation tests preserve the event and continue other channels |
+| I Uncertain state | **PASS (core/restart)** | Restart reconciliation maps stale working sessions to `unknown` |
+| J Idle only | **PASS (fixture/core)** | Turn-ended normalization and non-success wording are covered by adapter/core tests |
+| K Classified beats idle | **PASS (core)** | Grace-window precedence tests select classified events over idle |
+| L Failure | **PASS / BOUNDED** | Adapter failure fixtures and provider failure tests pass; live PT-03C confirms controlled tool failure is reported without falsely claiming an agent failure |
+| M Denial | **PASS (fixture/core)** | Denied approval closes the pending request and does not leave approval-waiting state |
+| N Storm | **PASS (core/performance)** | Queue serialization, coalescing, rate-limit, and latency smoke tests pass; a manual 50-event live storm remains Phase 6 performance evidence |
+| O Hostile project name | **PASS (live + security tests)** | Hostile-name live check and Windows provider escaping/argument-boundary tests pass |
+| P Restart | **PASS (live + integration)** | Spool recovery and restart reconciliation checks pass |
+| Q Unsupported environment | **PASS (doctor)** | Doctor reports environment capabilities; current machine correctly reports WSL/SSH/container false and focus unsupported under VS Code/OpenCode |
+
+The matrix is sufficient for pre-testing entry on the current build, but not a
+Phase 6 release sign-off: the second Windows build and the remaining Phase 6
+performance/security measurement work are still open.
