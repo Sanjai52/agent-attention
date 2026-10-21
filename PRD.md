@@ -4,7 +4,7 @@
 |---|---|
 | **File** | `PRD.md` |
 | **Product** | Agent Attention |
-| **Document version** | 2.2 |
+| **Document version** | 2.3 |
 | **Last updated** | 2026-10-21 |
 | **Status** | Proposed — MVP specification (source of truth) |
 | **Product type** | Cross-agent plugin ecosystem |
