@@ -123,17 +123,6 @@ describe("connection dispatcher", () => {
     }
   });
 
-  it("rejects SubmitEvent before AdapterHello", async () => {
-    const { connection: conn } = connection();
-
-    const response = await conn.handleRequest(submit(event()));
-    expect(response.ok).toBe(false);
-    if (!response.ok) {
-      expect(response.error.code).toBe("rejected_event");
-      expect(response.error.message).toMatch(/hello/i);
-    }
-  });
-
   it("submits a valid event through the pipeline and stores it", async () => {
     const { connection: conn, store } = connection();
     await conn.handleRequest(hello());
@@ -145,6 +134,30 @@ describe("connection dispatcher", () => {
     }
     expect(store.events).toHaveLength(1);
     expect(store.events[0]?.event.eventId).toBe("event-1");
+  });
+
+  it("accepts a hook-shim SubmitEvent without AdapterHello and binds its adapter", async () => {
+    const { connection: conn } = connection();
+
+    const first = await conn.handleRequest(
+      submit(makeEvent({ eventType: "agent.started", eventId: "shim-event-1" })),
+    );
+    expect(first.ok).toBe(true);
+
+    const second = await conn.handleRequest(
+      submit(
+        makeEvent({
+          eventType: "agent.progress",
+          eventId: "shim-event-2",
+          adapterId: "adapter-b",
+        }),
+        "submit-2",
+      ),
+    );
+    expect(second).toMatchObject({
+      ok: false,
+      error: { code: "rejected_event" },
+    });
   });
 
   it("persists the event and session before dispatching notifications", async () => {

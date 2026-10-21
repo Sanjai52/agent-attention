@@ -143,16 +143,12 @@ export function createConnection(deps: ConnectionDependencies): HostConnection {
   async function handleSubmit(
     request: Extract<IpcRequest, { kind: "submit_event" }>,
   ): Promise<IpcResponse> {
-    if (boundAdapterId === undefined) {
-      return failure(
-        request.id,
-        "rejected_event",
-        "AdapterHello must complete before SubmitEvent",
-      );
-    }
-
     const adapterId = submittedAdapterId(request.payload.event);
-    if (adapterId !== undefined && adapterId !== boundAdapterId) {
+    if (
+      boundAdapterId !== undefined &&
+      adapterId !== undefined &&
+      adapterId !== boundAdapterId
+    ) {
       const diagnostic: PipelineDiagnostic = {
         code: "validation",
         message: `connection registered as ${boundAdapterId} cannot submit events for ${adapterId}`,
@@ -173,6 +169,13 @@ export function createConnection(deps: ConnectionDependencies): HostConnection {
 
     if (result.status === "rejected") {
       return failure(request.id, "rejected_event", rejectionMessage(result.diagnostics));
+    }
+
+    // Hook shims submit one event per short-lived connection and do not perform
+    // AdapterHello. Bind the connection to the first accepted event's adapter;
+    // any later event for a different adapter is rejected above.
+    if (boundAdapterId === undefined && adapterId !== undefined) {
+      boundAdapterId = adapterId;
     }
 
     // The pipeline has already persisted the event and session before this
@@ -279,7 +282,7 @@ export function createConnection(deps: ConnectionDependencies): HostConnection {
       return boundAdapterId;
     },
     get hasHello() {
-      return helloComplete;
+      return helloComplete || boundAdapterId !== undefined;
     },
     async handleRequest(request: IpcRequest): Promise<IpcResponse> {
       deps.onActivity?.();
