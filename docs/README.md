@@ -27,6 +27,7 @@
 | `adapter-development.md` | How to add a host adapter | Phase 3/5 |
 | `reference-claude-alert.md` | Read-only analysis of the Claude Alert reference implementation | reference |
 | `host-signal-matrix.md` | S1 evidence: per-host signal reliability | Phase 0 |
+| `capability-status.md` | Verified support, limitations, and future work by integration | Phase 6 |
 | `installation.md` | User install/configure guide | Phase 6 |
 | `troubleshooting.md` | Doctor output, common failures | Phase 2/6 |
 | `../spikes/` | Throwaway S1/S2/S3 prototypes (do not promote) | Phase 0 |
