@@ -356,3 +356,22 @@ slow, but the deterministic response and lifecycle pair completed successfully.
 PT-03B approval, PT-03C failure, PT-03D interruption, PT-03E concurrency, and
 the policy/recovery/security scenarios remain the next manual execution block;
 they are not claimed as passed by this report.
+
+## Remaining-scenario execution — 2026-10-21
+
+| Scenario | Result | Evidence |
+|---|---|---|
+| PT-03B controlled approval | **BLOCKED** | Requires a live model/tool turn; not safely executable while the upstream endpoint is unavailable |
+| PT-03C controlled failure | **BLOCKED BY EXTERNAL SERVICE** | OpenCode reached the real plugin but returned `Endpoint is unavailable` before running `process.exit(23)`; no product failure event was claimed |
+| PT-03D interruption | **BLOCKED** | Requires a live model turn to interrupt; same endpoint dependency |
+| PT-03E concurrent sessions | **BLOCKED** | Requires two live model turns; same endpoint dependency |
+| Duplicate event | **PASS** | Two identical packaged Claude hook inputs persisted one `agent.started` identity |
+| Spool recovery | **PASS** | Forced unavailable-pipe input created a spool file; host restart ingested it and consumed the file |
+| Hostile input | **PASS** | Shell/markup-shaped project name was accepted as data; no command executed and no raw shell invocation occurred |
+| Global mute policy | **PASS** | Mute returned `muted: true`, event history remained persisted, and unmute restored `muted: false` |
+| Second Windows build | **BLOCKED** | Only the current Windows 11 build is available in this environment |
+
+The unresolved items are external-environment gates, not implementation defects
+observed in the deterministic host, shim, storage, installer, or provider
+checks. A live model endpoint and a second Windows machine/build are required
+to close them honestly.
