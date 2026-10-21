@@ -22,7 +22,7 @@ function buildEvent(options: NormalizerOptions, event: ClaudeCodeHookEvent, even
 export function createNormalizer(options: NormalizerOptions): ClaudeCodeNormalizer {
   const seen = new Set<string>();
   return { normalize(event) {
-    const supportedHook = new Set(["SessionStart", "PermissionRequest", "Stop", "StopFailure", "PostToolUseFailure", "SessionEnd"]);
+    const supportedHook = new Set(["SessionStart", "PermissionRequest", "PostToolUse", "Stop", "StopFailure", "PostToolUseFailure", "SessionEnd"]);
     if (!supportedHook.has(event.hookEventName)) return [];
     const discriminator = event.requestId ?? event.turnId ?? event.hookEventName;
     const dedupeKey = `${CLAUDE_CODE_ADAPTER_ID}:${event.sessionId}:${discriminator}`;
@@ -31,6 +31,7 @@ export function createNormalizer(options: NormalizerOptions): ClaudeCodeNormaliz
     switch (event.hookEventName) {
       case "SessionStart": return [buildEvent(options, event, "agent.started", "authoritative")];
       case "PermissionRequest": return [buildEvent(options, event, "agent.needs_approval", "authoritative", event.requestId === undefined ? undefined : { requestId: event.requestId })];
+      case "PostToolUse": return [buildEvent(options, event, "agent.approval_resolved", "inferred", { resolution: "approved", ...(event.requestId === undefined ? {} : { requestId: event.requestId }) })];
       case "Stop": return [buildEvent(options, event, "agent.turn_ended", "inferred")];
       case "StopFailure":
       case "PostToolUseFailure": return [buildEvent(options, event, "agent.failed", "authoritative", { failureCode: event.failureCode ?? "host_error" })];

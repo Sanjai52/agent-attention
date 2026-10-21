@@ -15,7 +15,7 @@ const EVENT_CAPABILITIES: Record<AgentEventType, CapabilityEntry> = {
   "agent.progress": { support: "unsupported", notes: "No verified progress hook." },
   "agent.needs_input": { support: "unsupported", notes: "Plain questions are not distinguishable from hook metadata." },
   "agent.needs_approval": { support: "authoritative", sourceSignal: "PermissionRequest" },
-  "agent.approval_resolved": { support: "unsupported", notes: "No verified resolution hook." },
+  "agent.approval_resolved": { support: "inferred", sourceSignal: "PostToolUse", notes: "Execution after PermissionRequest is an inferred approval; denial has no reliable resolution hook." },
   "agent.resumed": { support: "unsupported", notes: "No verified resume hook." },
   "agent.turn_ended": { support: "inferred", sourceSignal: "Stop", notes: "Stop is a turn boundary, never completion." },
   "agent.completed": { support: "unsupported", notes: "No verified successful-completion hook." },
