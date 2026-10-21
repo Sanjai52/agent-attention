@@ -26,6 +26,7 @@ import {
 import {
   createPipelineStore,
   openDatabase,
+  type AgentAttentionDb,
   type AgentAttentionStore,
   type DeliveryRecord,
   type EventFilters,
@@ -49,6 +50,8 @@ export function defaultDataDir(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 interface StoreFacade extends PipelineStore {
+  readonly db: AgentAttentionDb;
+  readonly databasePath: string;
   close(): void;
   listSessions(): SessionRecord[];
   listEvents(filters?: EventFilters): StoredEvent[];
@@ -86,6 +89,10 @@ export function createDefaultRuntime(options: DefaultRuntimeOptions = {}): HostR
   // actual store operation does. Teardown can therefore close exactly what was
   // opened without creating a new connection.
   const storeFacade: StoreFacade = {
+    databasePath: join(dataDir, "agent-attention.db"),
+    get db() {
+      return getStore().db;
+    },
     claimFingerprint: (...args) => getStore().claimFingerprint(...args),
     claimEvent: (...args) => getStore().claimEvent(...args),
     recordEvent: (...args) => getStore().recordEvent(...args),
