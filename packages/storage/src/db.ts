@@ -8,11 +8,21 @@
  */
 
 import { mkdirSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname } from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import type { DatabaseSync as SqliteDatabase } from "node:sqlite";
 import { StorageError, describeError, translateSqliteError } from "./errors";
 import { migrate, type MigrationResult } from "./migrations";
 import type { Migration } from "./schema.sql";
+
+type DatabaseSync = SqliteDatabase;
+
+// `createRequire` keeps `node:sqlite` out of bundlers that rewrite unknown
+// `node:` specifiers (tsup/esbuild target es2022 does so). Node 24 resolves the
+// built-in synchronously either way.
+const { DatabaseSync: DatabaseSyncCtor } = createRequire(import.meta.url)(
+  "node:sqlite",
+) as { DatabaseSync: new (path: string) => SqliteDatabase };
 
 export const DEFAULT_BUSY_TIMEOUT_MS = 5000;
 
@@ -134,7 +144,7 @@ export function openDatabase(path: string, options: OpenDatabaseOptions = {}): A
 
   let raw: DatabaseSync;
   try {
-    raw = new DatabaseSync(path);
+    raw = new DatabaseSyncCtor(path);
   } catch (error) {
     throw translateSqliteError(error, `open ${path}`);
   }
