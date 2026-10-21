@@ -20,7 +20,14 @@ function buildEvent(options: NormalizerOptions, event: ClaudeCodeHookEvent, even
   return { schemaVersion: EVENT_SCHEMA_VERSION, eventId: identifierPart(dedupeKey), eventIdStability: "synthetic", dedupeKey: identifierPart(dedupeKey), eventType, source: { adapterId: CLAUDE_CODE_ADAPTER_ID, adapterVersion: CLAUDE_CODE_ADAPTER_VERSION, agentId: CLAUDE_CODE_ADAPTER_ID, agentName: "Claude Code" }, session: sessionOf(event), occurredAt, receivedAt, confidence, ...(details === undefined ? {} : { details }) };
 }
 export function createNormalizer(options: NormalizerOptions): ClaudeCodeNormalizer {
+  const seen = new Set<string>();
   return { normalize(event) {
+    const supportedHook = new Set(["SessionStart", "PermissionRequest", "Stop", "StopFailure", "PostToolUseFailure", "SessionEnd"]);
+    if (!supportedHook.has(event.hookEventName)) return [];
+    const discriminator = event.requestId ?? event.turnId ?? event.hookEventName;
+    const dedupeKey = `${CLAUDE_CODE_ADAPTER_ID}:${event.sessionId}:${discriminator}`;
+    if (seen.has(dedupeKey)) return [];
+    seen.add(dedupeKey);
     switch (event.hookEventName) {
       case "SessionStart": return [buildEvent(options, event, "agent.started", "authoritative")];
       case "PermissionRequest": return [buildEvent(options, event, "agent.needs_approval", "authoritative", event.requestId === undefined ? undefined : { requestId: event.requestId })];
