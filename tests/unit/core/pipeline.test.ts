@@ -280,6 +280,36 @@ describe("persistence precedes dispatch (PRD §14.2, step 2)", () => {
     ).toEqual(["claimFingerprint", "recordEvent", "saveSession"]);
   });
 
+  it("uses the store's crash-atomic claim+insert path when available", () => {
+    const store = new MemoryPipelineStore({ atomicClaims: true });
+
+    const result = processEvent(
+      event({
+        eventType: "agent.needs_input",
+        projectName: "proj",
+        details: { requestId: "req-atomic" },
+      }),
+      makeDeps(store),
+    );
+
+    expect(result.status).toBe("processed");
+    expect(store.events).toHaveLength(1);
+    expect(store.events[0]?.meta).toEqual({
+      fingerprint: expect.any(String),
+      late: false,
+      duplicate: false,
+    });
+    expect(
+      store.calls.filter(
+        (call) =>
+          call === "claimEvent" ||
+          call === "claimFingerprint" ||
+          call === "recordEvent" ||
+          call === "saveSession",
+      ),
+    ).toEqual(["claimEvent", "claimFingerprint", "recordEvent", "saveSession"]);
+  });
+
   it("keeps the persisted event when planning fails with an internal error", () => {
     const store = new MemoryPipelineStore();
 

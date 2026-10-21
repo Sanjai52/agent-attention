@@ -1054,3 +1054,35 @@ with:
 | `out/npm-install-better-sqlite3.log`, `out/npm-ci.log` | Install/prebuilt evidence |
 | `out/npm-install-build-from-source.log` | Compiler absence proof |
 | `out/npm-ci-ignore-scripts.log`, `out/probe-better-ignorescripts.log` | Broken-install evidence |
+
+## Phase 2 Task 2.14 — Receipt-to-dispatch latency smoke (implementation)
+
+- **Date / Windows build / tool versions:** 2026-10-21 / 10.0.26300.9711 /
+  Node v24.20.0, SQLite via built-in `node:sqlite`.
+- **Method:** `npx vitest run tests/integration/host/latency-smoke.test.ts` on
+  Windows. The test opens a temp-file SQLite database (real storage, not
+  memory), starts the production `createPipeServer` with stub providers, and
+  connects one persistent named-pipe client.
+  - Request path: 500 valid `agent.progress` events in 10 bursts of 50 events,
+    100 ms between bursts. Each sample is the client's write→response time, so
+    it includes transport and receipt→pipeline response. Progress is not
+    persisted and produces no notifications, isolating the request path.
+  - Dispatch path: 50 valid `agent.needs_input` events, one at a time, with a
+    stub `dispatch` hook that records `performance.now()` when the host invokes
+    it. Each sample is write→dispatch-call, which is the PRD §19.3
+    receipt-to-dispatch measure (persistence happens before dispatch).
+- **Raw observation:**
+  - Request path (focused run): n=500, p50 18.87 ms, **p95 40.70 ms**.
+  - Dispatch path (focused run): n=50, p50 1.31 ms, **p95 3.62 ms**.
+  - Request path (full `npx vitest run`, parallel load): n=500, p50 55.42 ms,
+    **p95 147.48 ms**.
+  - Dispatch path (full run): n=50, p50 2.28 ms, **p95 4.87 ms**.
+  - Both assertions `p95 < 500 ms` passed in every run; the test file completes
+    in ~1.7–2.3 s.
+- **Conclusion:** The production pipe/pipeline path is an order of magnitude
+  below the 500 ms target on this host. The dispatch number is the tighter
+  measure because it includes the synchronous SQLite write; the request-path
+  number is dominated by batching 50 concurrent writes on one connection.
+  Audio/provider latency is not included and remains covered by S3.
+- **Tag:** `[Verified]` on this Windows build and Node patch level. Single
+  warm-cache run; treat as a smoke result, not a statistical benchmark.

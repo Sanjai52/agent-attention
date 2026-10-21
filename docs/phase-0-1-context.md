@@ -173,10 +173,12 @@ DST integration (Phase 4 Task 4.8) and runtime volume application/audio queue
 - [x] Phase 1 gate: 310 tests, lint, typecheck, build.
 - [x] Contract and architecture documentation.
 - [x] Phase 0 and Phase 1 status reports.
+- [x] Phase 2 host, storage, shim/spool, providers, doctor, ACL, and latency
+  smoke; final gate 535 tests / 38 files. Report: [`phase-2.md`](phase-2.md).
+- [x] Phase 2 production end-to-end smoke through `dist/main.js`.
 
 ### Open
 
-- [ ] Phase 2 host/providers (ready; cut after Phase 0 merge).
 - [ ] Phase 3 OpenCode adapter (after Phase 2).
 - [ ] Phase 4 policy/CLI/history; F13 only for WT/classic console; task 4.9
   click-to-focus deferred.

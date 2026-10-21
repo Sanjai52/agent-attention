@@ -1,10 +1,12 @@
 # Architecture
 
-**Status:** Phase 1 (contract + pure core) implemented and verified. Phase 0
-decided the first host (OpenCode, D-01), the process model (D-03), the SQLite
-binding (D-04), and the Windows delivery mechanisms (Q-05/Q-06/Q-07). This
-document records the implemented core shape and the boundaries the later phases
-must preserve. Source of truth: `PRD.md` §9, §10, §11, §14, §15.
+**Status:** Phases 0–2 implemented and verified. Phase 0 decided the first host
+(OpenCode, D-01), the process model (D-03), the SQLite binding (D-04), and the
+Windows delivery mechanisms (Q-05/Q-06/Q-07). Phase 2 added the headless host,
+single-writer SQLite store, named-pipe IPC, shim/spool path, provider set,
+dispatch queue, and doctor data. This document records the implemented shape
+and the boundaries later phases must preserve. Source of truth: `PRD.md` §9,
+§10, §11, §14, §15.
 
 ## 1. Design boundaries
 
@@ -31,17 +33,17 @@ sources for forbidden imports and APIs.
 
 ## 2. Components
 
-| Component | Package | Responsibility | Phase 1 state |
+| Component | Package | Responsibility | Phase 2 state |
 |---|---|---|---|
-| Adapters | `adapters/*` | Host discovery and signal normalization only | Empty scaffolds |
-| Contract | `packages/contract` | Event/config schemas, capabilities, safe names, versions | Implemented |
+| Adapters | `adapters/*` | Host discovery and signal normalization only | Empty scaffolds (Phase 3/5) |
+| Contract | `packages/contract` | Event/config schemas, capabilities, safe names, versions, IPC v1 | Implemented |
 | Core | `packages/core` | Ordering, state, dedupe, policy, templates, pipeline | Implemented |
-| Storage | `packages/storage` | SQLite schema and repositories (host-only) | Empty scaffold |
-| Notifications | `packages/notifications` | Provider interfaces, audio queue, dispatch | Empty scaffold |
-| Platform Windows | `packages/platform-windows` | Sound/TTS/toast/focus implementations | Empty scaffold |
-| Host | `packages/host` | Pipe server, lifecycle, timers, spool ingest, doctor | Empty scaffold |
-| Shim | `packages/shim` | Bounded pipe client, spawn, spool fallback | Empty scaffold |
-| CLI | `packages/cli` | status/history/preview/doctor/config/mute/install | Empty scaffold |
+| Storage | `packages/storage` | SQLite schema, migrations, repositories, atomic dedupe+event insert | Implemented |
+| Notifications | `packages/notifications` | Provider interfaces, audio queue, dispatch | Implemented |
+| Platform Windows | `packages/platform-windows` | Sound/TTS/toast/focus implementations | Implemented |
+| Host | `packages/host` | Pipe server, lifecycle, timers, spool ingest, runtime composition, doctor | Implemented |
+| Shim | `packages/shim` | Bounded pipe client, detached spawn, spool fallback | Implemented |
+| CLI | `packages/cli` | status/history/preview/doctor/config/mute/install | Empty scaffold (Phase 4) |
 
 ## 3. Contract module map
 
@@ -105,7 +107,7 @@ unknown payload
   -> parseAgentEvent            reject: validation / capability
   -> capability honesty         reject: unsupported or dishonest confidence
   -> fingerprint claim          duplicate: stop, no state, no plans
-  -> record event               (except progress)
+  -> atomic claim + event insert (single SQLite transaction; except progress)
   -> ordering / lateness        late: record, no state (closure may apply)
   -> applyEvent                 pure state transition + save
   -> grace supersession         classified event beats pending turn-end
@@ -134,54 +136,89 @@ Key invariants:
 - **Ended-session reuse is not decided.** The host lifecycle must choose
   reject-vs-reuse before persistence lands (PRD §13.2 last row).
 
-## 7. Data flow (target)
+## 7. Data flow (Phase 2)
 
 ```text
-host signal -> adapter -> shim -> pipe -> host -> core pipeline -> providers
+host signal -> adapter -> shim -> pipe -> host -> core pipeline -> dispatch queue
+                                         |                    |-> sound/voice/desktop
                                          |-> SQLite (single writer)
+                                         |-> spool replay (atomic per-event files)
 ```
 
-The left half is **not implemented**. Phase 1 covers everything from
-`core pipeline` inward. The process model is decided (D-03): headless host with
-exclusive named-pipe creation, DACL hardening before readiness, bounded retry
-polling, atomic per-event spool, and per-session `sequence` for ordering.
+The host is the only SQLite writer. The shim connects to the per-user pipe with
+a 950 ms total budget, spawns a detached hidden host on failure, and falls back
+to an atomic per-event spool file. The host creates the pipe exclusively,
+applies the protected DACL `D:P(A;;FA;;;SY)(A;;FA;;;OW)` before readiness,
+then opens SQLite, migrates, ingests the spool, reconciles sessions after a
+prior crash, and serves requests. A hook-shim connection binds its adapter on
+the first accepted `SubmitEvent`; long-lived clients use `AdapterHello`. A
+second adapter on the same connection is rejected. `agent.progress` is liveness
+only and is not stored; all other events use a single claim+insert transaction.
+
+Dispatch is deliberately off the IPC acknowledgement path: the pipeline
+persists the event/session first, then the host queues the notification plan.
+A slow or failing provider cannot roll back the event or block another channel.
+Audio is serialized by a bounded priority/FIFO queue; desktop is direct. The
+Windows sound provider tries in-process WinMM MCI through koffi first and falls
+back to the fixed PowerShell script. Missing audio, TTS, or toast registration
+yields a typed `unavailable`/`failed` delivery record without affecting the
+event or another channel.
+
+`createDefaultRuntime()` is the production composition root: it supplies the
+lazy SQLite store, clock, compiled config defaults, Windows providers, ACL
+hardener, history/mute hooks, and `runHost()` lifecycle. The host build bundles
+workspace packages into `dist/index.js` and `dist/main.js`; `node:sqlite` and
+koffi remain runtime dependencies. Config-file loading stays in the Phase 4 CLI;
+Phase 2 uses the validated defaults.
 
 ## 8. Paths (decided except channel-specific assets)
 
 - Config: `%APPDATA%\AgentAttention\config.json` (D-05)
-- Data: `%LOCALAPPDATA%\AgentAttention\` (database, spool, logs, manifests)
+- Data: `%LOCALAPPDATA%\AgentAttention\` with `agent-attention.db` and `spool\`
 - Pipe: `\\.\pipe\agent-attention-u-<sid8>` (D-03)
 - Spool: `%LOCALAPPDATA%\AgentAttention\spool\` with atomic per-event files
 - Toast identity: `HKCU\Software\Classes\AppUserModelId\AgentAttention.<...>` plus
   a Start Menu shortcut carrying the same AUMID (Q-05)
 
 The `sid8` token is a short hash of the account SID, not the username. Phase 2
-may add channel-specific asset paths without reopening D-03.
+loads compiled defaults; config-file loading and validation rendering belong to
+the Phase 4 CLI. The data directory and pipe can be overridden by the host's
+`--data-dir` and `--pipe` flags (tests use both).
 
 ## 9. Verification
 
-Phase 1 gate: `npm run ci` (lint, dependency check, typecheck, 310 unit tests,
-build) plus a full synthetic replay. Coverage by area:
+Phase 2 gate: `npm run ci` (lint, dependency check, all workspace typechecks,
+535 tests across 38 files, build) plus a real `node packages/host/dist/main.js`
+end-to-end smoke: a shim `SubmitEvent` traverses the protected pipe, persists
+the event and session, dispatches sound, records independent voice/toast
+outcomes, and shuts down cleanly. The default DACL was read back before/after
+hardening (`Everyone`/`Anonymous` read removed; SYSTEM + owner retained).
+Coverage by area:
 
 | Area | Tests |
 |---|---|
-| Contract/schema/config/safe names | `tests/unit/contract/` |
+| Contract/schema/config/safe names/IPC v1 | `tests/unit/contract/` |
 | State machine, tasks, subagents | `tests/unit/core/state-*.test.ts` |
-| Ordering, dedupe, staleness | `tests/unit/core/ordering.test.ts`, `fingerprint.test.ts`, `staleness.test.ts` |
+| Ordering, dedupe, staleness, atomic claim | `tests/unit/core/ordering.test.ts`, `fingerprint.test.ts`, `staleness.test.ts`, `pipeline.test.ts` |
 | Policy/templates/attention | `tests/unit/core/quiet-hours.test.ts`, `templates.test.ts`, `turn-end.test.ts`, `rate-limit.test.ts`, `coalesce.test.ts`, `reminders.test.ts` |
-| Composition | `tests/unit/core/pipeline.test.ts` |
-| Fixture replay | `tests/unit/core/replay.test.ts` |
-| Purity boundary | `tests/unit/tooling/purity.test.ts` |
+| Fixture replay / purity | `tests/unit/core/replay.test.ts`, `tests/unit/tooling/purity.test.ts` |
+| SQLite schema/repositories/migrations | `tests/unit/storage/` |
+| Provider contracts/queue/dispatch | `tests/unit/notifications/` |
+| Windows sound/speech/toast/focus/ACL | `tests/unit/platform-windows/` |
+| Pipe, lifecycle, single instance, spool | `tests/integration/host/` |
+| Shim budget/spawn/spool fallback | `tests/unit/shim/` |
+| Doctor and latency | `tests/unit/host/doctor.test.ts`, `tests/integration/host/latency-smoke.test.ts` |
 
 Detailed contract semantics live in [`event-contract.md`](event-contract.md);
-the Phase 1 delivery report is [`phase-1.md`](phase-1.md).
+the Phase 1 delivery report is [`phase-1.md`](phase-1.md) and the Phase 2
+delivery report is [`phase-2.md`](phase-2.md).
 
 ## 10. Open architecture decisions
 
 | Decision | Owner | Consequence if changed |
 |---|---|---|
 | D-01 first host adapter | **Decided: OpenCode v2.0.32** | Adapter package/fixtures only; core unaffected |
-| D-03 process model | **Decided:** headless host, per-user pipe, DACL-before-ready, bounded retry, atomic spool | Phase 2 host/shim/pipe wiring |
+| D-03 process model | **Decided:** headless host, per-user pipe, koffi DACL-before-ready, bounded retry, atomic spool | Phase 2 host/shim/pipe wiring |
 | D-04 SQLite binding | **Decided:** built-in `node:sqlite` (`DatabaseSync`), Node ≥24.20.0 | `packages/storage` implementation; isolate behind a storage adapter |
 | Q-05 audio/TTS/toast mechanism | **Decided:** MCI/koffi + SoundPlayer fallback; fixed SAPI stdin; per-user AUMID + WinRT toast | `platform-windows` providers |
 | Q-06/Q-07 focus detection/click-to-focus | **Q-06 decided** for WT/classic console, VS Code unsupported; **Q-07 deferred** until a real toast activation probe | F13 suppressor and install flow |

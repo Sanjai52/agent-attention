@@ -42,7 +42,7 @@ Copied from PRD; every task inherits these.
 | 5 — Second adapter | `phase-5-second-adapter` | `06-phase-5-second-adapter.md` | M5 | Second adapter reuses the core with no core changes beyond contract-level fixes |
 | 6 — Hardening & release | `phase-6-hardening-release` | `07-phase-6-hardening-release.md` | M6 | PRD §21.1 Definition of Done satisfied on a clean Windows profile |
 
-Phase 0 is complete; Phase 1 is complete. Phase 2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
+Phases 0–2 are complete. Phase 2→3 are strictly sequential. Phase 4 may overlap Phase 3's live-smoke work. Phase 5 requires Phase 4's CLI for install/uninstall verification. Phase 6 requires all acceptance scenarios.
 
 **Execution exception:** Phase 1 (contract + pure core) has no host dependency, so it may proceed in parallel with Phase 0 evidence gathering. No adapter work (Phase 3+) starts until Phase 0 closes D-01. If S2 changes the process model mid-flight, only Phase 2 wiring is reworked, not the pure core.
 
@@ -126,7 +126,7 @@ Phase plans may add phase-local `RFn` items (e.g., RF6–RF11 in Phases 3–6); 
 
 - [x] Phase 0 — Feasibility spikes (report: [`../phase-0.md`](../phase-0.md); branch kept after merge)
 - [x] Phase 1 — Contract & core (report: [`../phase-1.md`](../phase-1.md))
-- [ ] Phase 2 — Host & providers
+- [x] Phase 2 — Host & providers (report: [`../phase-2.md`](../phase-2.md))
 - [ ] Phase 3 — First adapter
 - [ ] Phase 4 — Policy, CLI, history
 - [ ] Phase 5 — Second adapter

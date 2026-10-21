@@ -10,8 +10,11 @@
     "types": "./dist/index.d.ts"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
+    "build": "tsup",
     "typecheck": "tsc --noEmit"
+  },
+  "bin": {
+    "agent-attention-host": "./dist/main.js"
   },
   "dependencies": {
     "@agent-attention/contract": "0.0.0",

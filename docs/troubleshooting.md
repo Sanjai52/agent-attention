@@ -1,13 +1,38 @@
 # Troubleshooting
 
-Status: scaffold. Expanded in Phase 2 (doctor glossary), Phase 3/5 (host sections),
-and finalized in Phase 6 Task 6.6.
+> Latency smoke (Phase 2, Windows): receipt→response p95 **40.7 ms** in the
+> recorded isolated run and **75.3–80.3 ms** in the final full-gate runs for 500
+> `agent.progress` events (**147.5 ms** in a separate parallel-load run);
+> receipt→dispatch p95 **3.4–4.2 ms** for 50 `agent.needs_input` events.
+> Target: p95 < 500 ms.
+
+Status: Phase 2 doctor glossary and host checks implemented; CLI rendering lands
+in Phase 4 Task 4.7, host-specific sections in Phases 3/5, and final polish in
+Phase 6 Task 6.6.
 Source of truth: `PRD.md` §7.1, §17.5, F11-R1.
 
 ## Doctor glossary
 
-[Filled in Phase 2 Task 2.14 and surfaced by Phase 4 Task 4.7: each check, what a
-warn/fail means, and the fix command.]
+Phase 2 placeholder; Phase 4 Task 4.7 renders the report as `ok | warn | fail`.
+`agent-attention doctor --json` emits the same fields. A probe never plays audio,
+speaks, or shows a toast.
+
+| Field | Meaning | Warn/fail guidance |
+|---|---|---|
+| `windowsVersion` | Windows build string (`os.version()` plus release), or `not-windows` off Windows | Supported hosts are Windows 10/11. Non-Windows is unsupported (D-09); continue only for diagnostics. |
+| `nodeVersion` | `process.version` of the process that collected the report | Must be Node ≥ 24.20 because storage uses built-in `node:sqlite`. |
+| `host.running` / `host.pid` | Whether the named pipe answered, and the answering host PID | Not running: start the host or let the next adapter event spawn it. |
+| `pipe.name` / `pipe.reachable` | Full per-user pipe name and a live reachability result | Unreachable with the host running usually means an ACL or crash problem; check the host log. |
+| `database.schemaVersion` | Highest applied row in `schema_migrations` | `0` or a version below the current schema means the DB never migrated; run the host once to migrate. |
+| `database.healthy` | A lightweight `SELECT 1` plus schema-version read succeeded | False: the DB is closed, locked, corrupt, or missing `schema_migrations`. Back up the file before repair. |
+| `database.path` | Resolved SQLite file path | Confirms which profile/data directory doctor inspected. |
+| `config.valid` / `config.diagnostics` | Whether config parsing produced no diagnostics, and the exact diagnostics | Invalid values fall back per key; the `keyPath` names the setting to fix (PRD §8.1). |
+| `audio.available` | Sound provider/device probe | False: no output device, audio service stopped, or the sound script failed. Sound delivery will be `unavailable`. |
+| `tts.available` / `tts.voices` | Speech provider probe and installed voice names | False or empty voices: no SAPI voice installed; speech is skipped without blocking other channels. |
+| `toast.registered` | The per-user AUMID registry key and Start Menu shortcut both exist (AC-F6-07) | False: run `agent-attention install <host>` (or the installer) to register the toast identity. Registration does not guarantee the user saw a toast; Focus Assist/DND may still hide it (F6-R10). |
+| `focus.supported` | Whether this host can map a session to its terminal window | Supported only for Windows Terminal and classic console; VS Code and unknown hosts are `false` (Q-06/F13-R5). Unsupported means no focus suppression, never a guessed suppression. |
+| `environment.wsl` / `.ssh` / `.container` | Detection from `WSL_DISTRO_NAME`/`/proc/version`, `SSH_CONNECTION`/`SSH_CLIENT`, and container sentinels | Any `true` means an unsupported environment (AC-F11-02, D-09). Alerts may not reach the desktop; detection never blocks the host. |
+| `adapters` | Per-adapter capability matrix (`AdapterCapabilities`) | `unsupported` events are not expected from that adapter; `inferred` warns that confidence and false-alert targets apply. |
 
 ## Common situations (to be filled)
 
