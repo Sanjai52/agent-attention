@@ -8,14 +8,14 @@ described as available.
 
 ## Supported platform
 
-| Area | Current support |
-| --- | --- |
-| Operating system | Windows 10/11, native user sessions |
-| Runtime | Node.js `>=24.20.0` |
-| Storage | Per-user SQLite state and history |
-| User surface | CLI, sound, voice, and Windows desktop notifications |
-| Unsupported environments | WSL, SSH, dev containers, and remote workspaces |
-| Administrator rights | Not required for the intended per-user installation |
+| Area                     | Current support                                      |
+| ------------------------ | ---------------------------------------------------- |
+| Operating system         | Windows 10/11, native user sessions                  |
+| Runtime                  | Node.js `>=24.20.0`                                  |
+| Storage                  | Per-user SQLite state and history                    |
+| User surface             | CLI, sound, voice, and Windows desktop notifications |
+| Unsupported environments | WSL, SSH, dev containers, and remote workspaces      |
+| Administrator rights     | Not required for the intended per-user installation  |
 
 ## Agent integrations
 
@@ -24,21 +24,21 @@ described as available.
 Verified against OpenCode `v2.0.32`. This is the primary and most complete
 integration.
 
-| Capability | Status | Signal or evidence |
-| --- | --- | --- |
-| Session start | Supported, authoritative | `session.execution.started` |
-| Coarse progress | Supported, authoritative | `session.step.started` |
-| Approval request | Supported, authoritative | `permission.asked` |
-| Approval resolution | Supported, authoritative | `permission.replied` |
-| Interrupted turn | Supported, inferred | `session.execution.interrupted` |
-| Successful completion | Supported, authoritative | `session.execution.succeeded` |
-| Failure | Supported, authoritative | `session.execution.failed` |
-| Stable event IDs and ordering | Supported | Source IDs and durable sequence |
-| Concurrent sessions | Supported | Live pre-testing evidence |
-| Subagents | Supported by capability contract | Parent/child session identity |
-| General blocking questions | Unsupported | No verified authoritative signal |
-| Resume signal | Unsupported | No verified host signal |
-| Session-ended signal | Unsupported | No verified host signal |
+| Capability                    | Status                           | Signal or evidence               |
+| ----------------------------- | -------------------------------- | -------------------------------- |
+| Session start                 | Supported, authoritative         | `session.execution.started`      |
+| Coarse progress               | Supported, authoritative         | `session.step.started`           |
+| Approval request              | Supported, authoritative         | `permission.asked`               |
+| Approval resolution           | Supported, authoritative         | `permission.replied`             |
+| Interrupted turn              | Supported, inferred              | `session.execution.interrupted`  |
+| Successful completion         | Supported, authoritative         | `session.execution.succeeded`    |
+| Failure                       | Supported, authoritative         | `session.execution.failed`       |
+| Stable event IDs and ordering | Supported                        | Source IDs and durable sequence  |
+| Concurrent sessions           | Supported                        | Live pre-testing evidence        |
+| Subagents                     | Supported by capability contract | Parent/child session identity    |
+| General blocking questions    | Unsupported                      | No verified authoritative signal |
+| Resume signal                 | Unsupported                      | No verified host signal          |
+| Session-ended signal          | Unsupported                      | No verified host signal          |
 
 OpenCode live delivery, history persistence, completion, interruption,
 concurrency, duplicate suppression, spool recovery, hostile-name handling,
@@ -50,18 +50,18 @@ The adapter is verified against Claude Code `2.1.181`. A local `2.1.306`
 runtime was exercised for hook delivery, but the full capability set has not
 been revalidated against that newer runtime.
 
-| Capability | Status | Signal or evidence |
-| --- | --- | --- |
-| Session start | Supported, authoritative | `SessionStart` |
-| Approval request | Supported, authoritative but TUI-scoped | `PermissionRequest` |
-| Approval resolution | Supported, inferred | `PostToolUse` after approval |
-| Turn ended | Supported, inferred | `Stop`; never treated as success |
-| Failure | Supported, authoritative | `StopFailure`, `PostToolUseFailure` |
-| Session ended | Supported, authoritative | `SessionEnd` |
-| Successful completion | Unsupported | No verified success hook |
-| Progress | Unsupported | No verified progress hook |
-| General blocking questions | Unsupported | Not distinguishable from metadata |
-| Resume, sequence, subagents, liveness | Unsupported | No verified host support |
+| Capability                            | Status                                  | Signal or evidence                  |
+| ------------------------------------- | --------------------------------------- | ----------------------------------- |
+| Session start                         | Supported, authoritative                | `SessionStart`                      |
+| Approval request                      | Supported, authoritative but TUI-scoped | `PermissionRequest`                 |
+| Approval resolution                   | Supported, inferred                     | `PostToolUse` after approval        |
+| Turn ended                            | Supported, inferred                     | `Stop`; never treated as success    |
+| Failure                               | Supported, authoritative                | `StopFailure`, `PostToolUseFailure` |
+| Session ended                         | Supported, authoritative                | `SessionEnd`                        |
+| Successful completion                 | Unsupported                             | No verified success hook            |
+| Progress                              | Unsupported                             | No verified progress hook           |
+| General blocking questions            | Unsupported                             | Not distinguishable from metadata   |
+| Resume, sequence, subagents, liveness | Unsupported                             | No verified host support            |
 
 The installer, asynchronous hook runner, normalization, fixture replay,
 duplicate suppression, and `SessionStart` live path are implemented.
