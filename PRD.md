@@ -4,9 +4,9 @@
 |---|---|
 | **File** | `PRD.md` |
 | **Product** | Agent Attention |
-| **Document version** | 2.3 |
-| **Last updated** | 2026-10-21 |
-| **Status** | Proposed — MVP specification (source of truth) |
+| **Document version** | 2.4 |
+| **Last updated** | 2026-10-22 |
+| **Status** | MVP implementation integrated; release certification pending |
 | **Product type** | Cross-agent plugin ecosystem |
 | **Initial platform** | Windows 10/11 (native) |
 | **Primary language** | TypeScript |
@@ -1663,6 +1663,7 @@ Open questions MUST be closed (answered, with a decision ID, or explicitly defer
 |---|---|---|
 | 1.0 | 2026-10-19 | Initial MVP specification |
 | 2.3 | 2026-10-21 | Closed Phase 2 (M2): recorded the implemented host, SQLite store, shim/spool, audio queue, Windows providers, and doctor/latency path; added `last_accepted_sequence` to §15.1; amended D-03/§10 to apply the pipe DACL in-process through koffi (no separate helper binary) and recorded the M2 outcome in §20; updated the remaining estimate to 17–24 working days for M3–M6. |
+| 2.4 | 2026-10-22 | Integrated pre-testing and Phase 6 hardening evidence: security/injection matrix, storm and replay tests, A–Q acceptance coverage, release packaging baseline, compatibility matrix, capability-status documentation, and the 60-file/624-test CI gate. Release certification remains pending clean-profile, second-build, crash-recovery, and release-candidate verification. |
 | 2.2 | 2026-10-21 | Closed Phase 0 (M0): decided D-01 (OpenCode v2.0.32, 5/5), D-03 (host/pipe/spool with ACL hardening and bounded retry), D-04 (`node:sqlite`); answered Q-05 (MCI/koffi sound + SoundPlayer fallback, fixed SAPI stdin TTS, per-user AUMID + WinRT toast), Q-06 (WT/classic console only; VS Code unsupported), Q-07 (click-to-focus deferred); answered Q-01/Q-02/Q-03/Q-04/Q-08/Q-09; deferred Q-10 (M3) and Q-13 (optional); updated §9.2, §10, §16.3–§16.6, F13-R5, §20 estimates (33–46 total; 23–32 remaining), and the host matrix/fixtures. |
 | 2.1 | 2026-10-20 | Replaced pnpm with npm workspaces (D-18): updated §10 tech stack, §11 repository structure (removed `pnpm-workspace.yaml`, added `package-lock.json`), added dependency-hygiene and CI requirements, and decision D-18. |
 | 2.0 | 2026-10-20 | Made source of truth. Added: document governance and status tags; `turn_ended`, `approval_resolved`, `resumed`, `session_ended` events; failure notification (F9); turn-ended notification (F10); CLI (F11); audio queue/coalescing/rate limiting (F12); focus awareness (F13); reminders (F14); privacy modes (F15). Revised: state machine (idle, ended, resumable terminal states, ordering, staleness, subagents, task scope); process model (Notification Host, single-writer storage, shim, spool); configuration (single source, v2 schema, resolution rules, voice and per-channel settings, quiet-hour channel flags, DST behavior); deduplication (explicit fingerprint priority, null handling, atomic claim before state mutation); persistence (delivery records, pending requests, dedupe table, migrations, no preferences table); security (injection prevention, safe-name rules, spoofing risk, install without admin); testing (fixtures-first, hostile inputs, restart/storm scenarios); metrics (added precision and outcome signals); milestones (added feasibility spikes; re-baselined to 32–45 days); WSL/remote declared out of scope; first-host selection by scorecard; resolved repository overlap between `notifications` and `platform-windows`; removed copied example data ("Pocket"). |

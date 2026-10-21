@@ -1,6 +1,8 @@
 # Phase 6.1 Security Review and Injection Matrix
 
-Status: reviewed on 2026-10-21 against the `phase-6-hardening-release` worktree.
+Status: reviewed on 2026-10-22; Phase 6 security evidence is integrated into
+`main`. Release certification remains pending the documented environment
+verification gates.
 
 Scope: PRD §17.1–§17.5, with particular attention to RF1. The executable
 matrix is [`tests/unit/security/injection-matrix.test.ts`](../tests/unit/security/injection-matrix.test.ts).

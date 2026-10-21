@@ -4,6 +4,12 @@
 
 **Goal:** Satisfy the PRD §21.1 Definition of Done on clean Windows profiles: security review, injection matrix, admin-free install/uninstall verification, packaging with a compatibility matrix, storm/performance evidence, the full A–Q acceptance sweep, completed documentation, and closed open questions.
 
+**Current status (2026-10-22):** Phase 6 hardening evidence is integrated into
+`main`. Security, packaging, compatibility, performance/storm, acceptance, and
+capability documentation are recorded. Clean-profile install/uninstall,
+second-build, crash/restart, and release-candidate verification remain open
+before a release tag or final sign-off.
+
 **Architecture:** No new product surface. This phase hardens, measures, packages, and documents what Phases 0–5 built, applying dogfood findings (Q-11/Q-12 and unhelpful-alert entries from `docs/dogfood-journal.md`).
 
 **Tech Stack:** unchanged; adds packaging (npm pack / host-native plugin archives per host) and CI release workflow.
@@ -31,10 +37,12 @@
 ### Task 6.1: Security review and injection matrix
 
 **Files:**
+
 - Create: `docs/security-review.md`, `tests/unit/security/injection-matrix.test.ts`
 - Modify: `PRD.md` §23.1 (D-15 status if the review changes it), `docs/architecture.md`
 
 **Interfaces:**
+
 - Produces: a matrix of (input vector × sink) cases: hostile project/agent names (quotes, `;`, backticks, `$()`, `%VAR%`, XML chars, 10k chars, Unicode controls, RTL overrides), each exercised against: toast XML generation, TTS stdin, sound file argument, history JSON, human CLI output, and log lines. Every cell asserts no command execution, no markup injection, correct inert rendering (PRD §17.2).
 
 - [ ] **Step 1: Write the matrix test** (RF1) and run it; fix every failure in the owning package (not the test).
@@ -48,10 +56,12 @@
 ### Task 6.2: Clean-profile install/uninstall verification
 
 **Files:**
+
 - Create: `docs/installation-verification.md`
 - Test: `tests/integration/install/clean-profile.test.ts` (drives the CLI against temp HOME/APPDATA/LOCALAPPDATA)
 
 **Interfaces:**
+
 - Produces: scripted verification that on a profile with no prior Agent Attention state: `install <host1>` then `install <host2>` succeed without admin; `doctor` is green; both integrations alert; `uninstall <host1>` leaves `<host2>` working; `uninstall <host2>` leaves no registry keys, config dir, data dir, or host config residue except the user's own history/config unless `--purge` (PRD §7.1).
 - Environment hygiene: tests set `APPDATA`, `LOCALAPPDATA`, `USERPROFILE` to a temp dir so nothing touches the real machine.
 
@@ -65,10 +75,12 @@
 ### Task 6.3: Packaging, versioning, and compatibility matrix
 
 **Files:**
+
 - Create: `.github/workflows/release.yml`, `docs/compatibility.md`
 - Modify: package manifests (bin, files, publishConfig), `docs/installation.md`
 
 **Interfaces:**
+
 - Produces:
   - Reproducible release build: `npm ci && npm run ci && npm pack` per publishable package; host-native plugin packaging for each adapter per its host format (from S1 Q-10 answer).
   - `docs/compatibility.md`: host version × adapter version × Windows version × Node version matrix, generated/updated each release (PRD §18.2).
@@ -84,9 +96,11 @@
 ### Task 6.4: Performance, storm, and resilience evidence
 
 **Files:**
+
 - Create: `tests/integration/performance/storm.test.ts`, `docs/performance-report.md`
 
 **Interfaces:**
+
 - Consumes: Task 2.14 latency smoke; PRD §19.3 targets.
 - Produces measured numbers for: receipt-to-dispatch p95 (< 500 ms), shim overhead p95 (< 300 ms, cap 1000 ms), hook-to-audible p95 (< 2 s, stubbed audio acceptable with measured provider overhead added), storm behavior (50 events/s; at most `maxAlertsPerMinute` audible, one summary, complete history), and crash-under-load (kill host mid-storm → restart reconciles, spool preserved, no duplicates).
 - **Phase 2 follow-up:** TTS currently spawns the fixed SAPI script per utterance (**4.8 s cold**, measured). If that makes hook-to-audible exceed the target, add the resident speech worker described in Q-05 before recording the metric; do not hide the provider overhead in the stub.
@@ -102,10 +116,12 @@
 ### Task 6.5: Full acceptance sweep (A–Q) and DoD checklist
 
 **Files:**
+
 - Create: `tests/acceptance/scenarios.test.ts` (automated where possible), `docs/acceptance-report.md`
 - Modify: `PRD.md` §24 (only if semantics changed), `docs/plans/00-master-plan.md`
 
 **Interfaces:**
+
 - Produces: one test (or recorded manual transcript) per PRD §19.2 scenario A–Q: blocking question, progress, approval, completion, concurrent agents, quiet hours, duplicates, notification failure, uncertain state, idle-only, classified-beats-idle, failure, denial, storm, hostile name, restart, unsupported environment.
 
 - [ ] **Step 1: Automate A–Q where the harness allows** (pipelines with stub providers, fake clocks); record the rest as manual transcripts with dates and versions.
@@ -119,10 +135,12 @@
 ### Task 6.6: Documentation completion
 
 **Files:**
+
 - Modify: `docs/architecture.md`, `docs/event-contract.md`, `docs/adapter-development.md`, `docs/installation.md`, `docs/troubleshooting.md`, `README.md`, `docs/host-signal-matrix.md`
 - Create: `docs/verification.md` (redirect map: which doc answers which PRD section)
 
 **Interfaces:**
+
 - Produces: documentation that a new contributor can follow to add a third adapter (using Phase 3/5 as the worked example) and a new user can follow to install, configure, and diagnose — every command and file path verified against the shipped build (RF11).
 
 - [ ] **Step 1: Dry-run the docs:** follow `installation.md` on a clean temp profile and `adapter-development.md` mentally against the two existing adapters; fix every drift.
@@ -135,6 +153,7 @@
 ### Task 6.7: Release candidate and PRD close-out
 
 **Files:**
+
 - Modify: `PRD.md` (status field: `Released — MVP`; §23 statuses; §24 change log), `docs/plans/00-master-plan.md` (all boxes), `CHANGELOG.md` (create)
 
 - [ ] **Step 1: Cut the release candidate** from a tagged commit; run the full `npm run ci` plus 6.5's acceptance report against the tag.

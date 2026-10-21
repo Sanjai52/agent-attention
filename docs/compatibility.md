@@ -1,6 +1,7 @@
 # Compatibility Matrix
 
-Status: initial Phase 6 packaging baseline. This file is copied into each tag
+Status: Phase 6 packaging and compatibility baseline is integrated into `main`;
+release-tag verification remains pending. This file is copied into each tag
 release and must be updated when a host, adapter, Windows, or Node support
 range changes.
 
