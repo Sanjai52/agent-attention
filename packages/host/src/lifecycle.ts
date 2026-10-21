@@ -24,6 +24,7 @@ import type {
 import {
   RollingRateLimiter,
   processEvent,
+  renderNotification,
   reconcileAfterHostRestart,
   type Clock,
   type GraceState,
@@ -277,8 +278,8 @@ export async function runHost(
   const deliverySink = runtime.store as PipelineStore & {
     recordDelivery?: (record: DeliveryRecord) => void;
   };
-  const dispatch = async (planned: PlannedNotification[]): Promise<void> => {
-    await dispatchPlanned(planned, {
+  const dispatch = async (planned: PlannedNotification[]): Promise<DeliveryRecord[]> => {
+    return dispatchPlanned(planned, {
       providers: runtime.providers,
       queue,
       recordDelivery: (record) => {
@@ -302,8 +303,50 @@ export async function runHost(
     });
   };
 
+  const preview = async (request: PreviewRequest): Promise<unknown> => {
+    const eventType: Record<PreviewRequest["eventClass"], AgentEventType> = {
+      needsInput: "agent.needs_input",
+      needsApproval: "agent.needs_approval",
+      turnEnded: "agent.turn_ended",
+      completed: "agent.completed",
+      failed: "agent.failed",
+    };
+    const type = eventType[request.eventClass];
+    const eventId = `preview-${Date.now().toString(36)}-${Math.random().toString(16).slice(2, 10)}`;
+    const rendered = renderNotification({
+      eventType: type,
+      completionScope: type === "agent.completed" ? "session" : undefined,
+      agentName: "Agent Attention",
+      projectName: "Preview",
+      timeLabel: runtime.clock.now().slice(11, 16),
+      privacy: runtime.config.privacy,
+    });
+    if (rendered === null) {
+      return { eventClass: request.eventClass, channel: request.channel, status: "unavailable", reason: "event has no notification template" };
+    }
+    const dispatchPromise = dispatch([
+      {
+        eventId,
+        eventType: type,
+        priority: 100,
+        channels: [{ channel: request.channel, decision: "dispatch" }],
+        rendered,
+      },
+    ]);
+    const timeout = new Promise<undefined>((resolve) => {
+      setTimeout(() => resolve(undefined), 500);
+    });
+    const deliveries = await Promise.race([dispatchPromise, timeout]);
+    return deliveries === undefined
+      ? { eventClass: request.eventClass, channel: request.channel, status: "queued" }
+      : { eventClass: request.eventClass, channel: request.channel, deliveries };
+  };
+
   // The submit callback closes over the registry, which is initialized before
   // the host accepts any requests.
+  const previewHandler = runtime.preview ?? preview;
+
+  // The timer registry is initialized after the stop/idle callbacks it closes over.
   // eslint-disable-next-line prefer-const
   let timers: TimerRegistry;
 
@@ -454,10 +497,12 @@ export async function runHost(
       ...(runtime.hardenPipeAcl === undefined ? {} : { hardenPipeAcl: runtime.hardenPipeAcl }),
       ...(runtime.history === undefined ? {} : { history: runtime.history }),
       ...(runtime.doctor === undefined ? {} : { doctor: runtime.doctor }),
-      ...(runtime.preview === undefined ? {} : { preview: runtime.preview }),
+      preview: previewHandler,
       ...(runtime.mute === undefined ? {} : { mute: runtime.mute }),
       ...(runtime.unmute === undefined ? {} : { unmute: runtime.unmute }),
-      dispatch,
+      dispatch: async (planned) => {
+        await dispatch(planned);
+      },
       onActivity: markActivity,
       onConnectionChange: () => {
         markActivity();

@@ -4,4 +4,5 @@ Commands: status, history, preview, doctor, config, mute, unmute, install, unins
 Claude Code install options: --host claude-code --settings <path> --command <hook-command>
 OpenCode install options: --host opencode --config <path> --plugin <absolute-directory>
 Installer options: --state-dir <path>, --dry-run, --purge
+Preview options: preview <event-class> [--voice|--desktop]
 Options: --json, --help`;

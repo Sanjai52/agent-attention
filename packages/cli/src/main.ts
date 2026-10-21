@@ -3,6 +3,7 @@ import { runClaudeHookFromStdin } from "@agent-attention/adapter-claude-code";
 import { createIpcClient, defaultIpcOptions } from "./ipc-client";
 import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
+import { parsePreviewArgs } from "./commands/preview";
 import { runConfig } from "./commands/config";
 import { defaultClaudeCodeSettingsPath, installClaudeCode, uninstallClaudeCode } from "./install/claude-code";
 import { defaultOpenCodeConfigPath, installOpenCode, uninstallOpenCode } from "./install/opencode";
@@ -95,14 +96,14 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
       : command === "history"
         ? { filters: {} }
         : command === "preview"
-          ? { eventClass: "completed", channel: "sound", voice: false }
+          ? parsePreviewArgs(argv.slice(1))
           : command === "doctor"
             ? { json }
           : command === "mute"
             ? {}
             : command === "unmute"
               ? {}
-              : {};
+            : {};
     const response = options.request
       ? await options.request(command as IpcRequestKind, payload as never)
       : await client.request(command as IpcRequestKind, payload as never);

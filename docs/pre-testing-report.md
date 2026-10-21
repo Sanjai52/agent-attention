@@ -286,7 +286,7 @@ not modified.
 |---|---|---|
 | PRE-01 — built CLI was not self-contained | **PASS** | Bundled `packages/cli/dist/index.js` ran `--help`, OpenCode install/uninstall, and `claude-hook` without source-module errors |
 | PRE-02 — OpenCode history was empty | **PASS** | OpenCode v2 loaded the directory plugin entry and history contained `agent.started` and `agent.completed` for one session |
-| PRE-03 — preview unavailable | **STILL BLOCKED** | Production host still returns `preview is not available in this host` |
+| PRE-03 — preview unavailable | **PASS** | Production host accepted sound, desktop, and voice preview requests; sound preview returned `delivered` in the Windows run |
 | PRE-04 — Claude hook runner absent | **PASS** | Packaged `claude-hook` converted raw `SessionStart` JSON into a persisted `agent.started` event |
 | PRE-05 — audio/TTS/toast unavailable | **STILL ENVIRONMENT-LIMITED** | No change; clean temporary profile still requires provider-specific verification |
 | PRE-06 — Windows version metadata discrepancy | **OPEN** | Not changed by this rerun |
@@ -306,6 +306,7 @@ Final automated rerun:
 - tests: 57 files / 600 tests PASS
 - production build: PASS
 
-Phase 6 is still not ready because preview behavior and the Windows provider
-and OS-reporting follow-ups remain unresolved. OpenCode event delivery,
-packaged CLI execution, and Claude hook delivery are no longer blockers.
+Phase 6 is still not ready because real-profile provider verification and the
+Windows OS-reporting clarification remain open. OpenCode event delivery,
+packaged CLI execution, Claude hook delivery, and preview behavior are no
+longer blockers.
