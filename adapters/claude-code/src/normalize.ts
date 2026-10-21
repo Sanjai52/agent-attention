@@ -15,7 +15,7 @@ function buildEvent(options: NormalizerOptions, event: ClaudeCodeHookEvent, even
   assertEmittable(options.capabilities, eventType);
   const receivedAt = event.receivedAt ?? new Date(options.now?.() ?? Date.now()).toISOString();
   const occurredAt = event.occurredAt ?? receivedAt;
-  const discriminator = event.requestId ?? event.turnId ?? event.hookEventName;
+  const discriminator = `${event.hookEventName}:${event.requestId ?? event.turnId ?? "default"}`;
   const dedupeKey = `${CLAUDE_CODE_ADAPTER_ID}:${event.sessionId}:${discriminator}`;
   return { schemaVersion: EVENT_SCHEMA_VERSION, eventId: identifierPart(dedupeKey), eventIdStability: "synthetic", dedupeKey: identifierPart(dedupeKey), eventType, source: { adapterId: CLAUDE_CODE_ADAPTER_ID, adapterVersion: CLAUDE_CODE_ADAPTER_VERSION, agentId: CLAUDE_CODE_ADAPTER_ID, agentName: "Claude Code" }, session: sessionOf(event), occurredAt, receivedAt, confidence, ...(details === undefined ? {} : { details }) };
 }
@@ -24,7 +24,7 @@ export function createNormalizer(options: NormalizerOptions): ClaudeCodeNormaliz
   return { normalize(event) {
     const supportedHook = new Set(["SessionStart", "PermissionRequest", "PostToolUse", "Stop", "StopFailure", "PostToolUseFailure", "SessionEnd"]);
     if (!supportedHook.has(event.hookEventName)) return [];
-    const discriminator = event.requestId ?? event.turnId ?? event.hookEventName;
+    const discriminator = `${event.hookEventName}:${event.requestId ?? event.turnId ?? "default"}`;
     const dedupeKey = `${CLAUDE_CODE_ADAPTER_ID}:${event.sessionId}:${discriminator}`;
     if (seen.has(dedupeKey)) return [];
     seen.add(dedupeKey);
