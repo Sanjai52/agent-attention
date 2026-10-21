@@ -104,6 +104,51 @@ describe("atomic dedupe claim", () => {
     });
   });
 
+  it("claims primary and adjacent fingerprints and inserts the event atomically", () => {
+    const store = newStore();
+    const event = makeEvent({ eventType: "agent.started", eventId: "atomic-claim-event" });
+
+    expect(
+      store.claimEvent(
+        event,
+        { primary: "atomic-primary", adjacent: "atomic-adjacent" },
+        { late: true },
+        NOW,
+      ),
+    ).toEqual({ claimed: true });
+
+    const rows = store.listEvents();
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      eventId: "atomic-claim-event",
+      fingerprint: "atomic-primary",
+      late: true,
+    });
+  });
+
+  it("rolls back the primary claim when the adjacent fingerprint is a duplicate", () => {
+    const store = newStore();
+    const first = makeEvent({ eventType: "agent.progress", eventId: "adjacent-owner" });
+    expect(store.claimFingerprint("adjacent-taken", first.eventId, NOW)).toEqual({
+      claimed: true,
+    });
+
+    const event = makeEvent({ eventType: "agent.started", eventId: "adjacent-loser" });
+    expect(
+      store.claimEvent(
+        event,
+        { primary: "primary-rollback", adjacent: "adjacent-taken" },
+        { late: false },
+        NOW,
+      ),
+    ).toEqual({ claimed: false, duplicateCount: 1 });
+
+    expect(store.listEvents()).toHaveLength(0);
+    expect(store.claimFingerprint("primary-rollback", "retry-event", NOW)).toEqual({
+      claimed: true,
+    });
+  });
+
   it("shares the unique constraint across two connections on the same file", () => {
     const store = newStore();
     const secondDb = openDatabase(join(dirs[dirs.length - 1]!, "agent-attention.db"), {

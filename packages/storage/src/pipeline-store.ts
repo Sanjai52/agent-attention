@@ -8,7 +8,12 @@
  */
 
 import type { AgentEvent, ValidationIssue } from "@agent-attention/contract";
-import type { PipelineDiagnostic, PipelineStore, SessionRecord } from "@agent-attention/core";
+import type {
+  EventFingerprints,
+  PipelineDiagnostic,
+  PipelineStore,
+  SessionRecord,
+} from "@agent-attention/core";
 import type { AgentAttentionDb } from "./db";
 import { StorageError, translateSqliteError } from "./errors";
 import { createDedupeRepository, type ClaimFingerprintResult } from "./repositories/dedupe";
@@ -40,7 +45,17 @@ export interface AgentAttentionStore extends PipelineStore {
   readonly db: AgentAttentionDb;
   readonly diagnostics: readonly (ValidationIssue | PipelineDiagnostic)[];
   /**
-   * Claim a fingerprint and insert the event row in the same SQLite
+   * Claim the primary and adjacent fingerprints and insert the event row in
+   * the same SQLite transaction. A duplicate rolls back the whole claim.
+   */
+  claimEvent(
+    event: AgentEvent,
+    fingerprints: EventFingerprints,
+    meta: { late: boolean },
+    now: string,
+  ): ClaimFingerprintResult;
+  /**
+   * Claim a single fingerprint and insert the event row in the same SQLite
    * transaction. Duplicates only bump `duplicate_count`.
    */
   claimAndRecordEvent(
@@ -58,6 +73,13 @@ export interface AgentAttentionStore extends PipelineStore {
 }
 
 const MAX_DIAGNOSTICS = 1000;
+
+/** Internal sentinel: roll back the primary claim when the adjacent one loses. */
+class AdjacentDuplicate extends Error {
+  constructor(readonly duplicateCount: number) {
+    super("adjacent fingerprint already claimed");
+  }
+}
 
 export function createPipelineStore(
   db: AgentAttentionDb,
@@ -82,6 +104,39 @@ export function createPipelineStore(
     }
   }
 
+  function claimAndInsert(
+    event: AgentEvent,
+    fingerprints: EventFingerprints,
+    meta: EventRecordMeta,
+    now: string,
+  ): ClaimFingerprintResult {
+    return guard("claim and record event", () => {
+      try {
+        return db.transaction(() => {
+          const primary = dedupe.claim(fingerprints.primary, event.eventId, now);
+          if (!primary.claimed) {
+            return primary;
+          }
+
+          if (fingerprints.adjacent !== undefined) {
+            const adjacent = dedupe.claim(fingerprints.adjacent, event.eventId, now);
+            if (!adjacent.claimed) {
+              throw new AdjacentDuplicate(adjacent.duplicateCount ?? 0);
+            }
+          }
+
+          events.insert(event, meta, now);
+          return { claimed: true };
+        });
+      } catch (error) {
+        if (error instanceof AdjacentDuplicate) {
+          return { claimed: false, duplicateCount: error.duplicateCount };
+        }
+        throw error;
+      }
+    });
+  }
+
   return {
     db,
     diagnostics,
@@ -90,16 +145,17 @@ export function createPipelineStore(
       return guard("claim fingerprint", () => dedupe.claim(fingerprint, eventId, now));
     },
 
-    claimAndRecordEvent(event, meta, now) {
-      return guard("claim and record event", () =>
-        db.transaction(() => {
-          const claim = dedupe.claim(meta.fingerprint, event.eventId, now);
-          if (claim.claimed) {
-            events.insert(event, meta, now);
-          }
-          return claim;
-        }),
+    claimEvent(event, fingerprints, meta, now) {
+      return claimAndInsert(
+        event,
+        fingerprints,
+        { fingerprint: fingerprints.primary, late: meta.late, duplicate: false },
+        now,
       );
+    },
+
+    claimAndRecordEvent(event, meta, now) {
+      return claimAndInsert(event, { primary: meta.fingerprint }, meta, now);
     },
 
     recordEvent(event, meta) {

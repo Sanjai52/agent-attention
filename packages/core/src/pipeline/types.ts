@@ -16,6 +16,7 @@ import type {
   ValidationIssue,
 } from "@agent-attention/contract";
 import type { RollingRateLimiter } from "../attention/rate-limit";
+import type { EventFingerprints } from "../dedupe/fingerprint";
 import type { RenderedNotification } from "../presentation/templates";
 import type { SessionRecord } from "../state/session";
 
@@ -75,6 +76,17 @@ export interface PipelineStore {
   claimFingerprint(
     fingerprint: string,
     eventId: string,
+    now: string,
+  ): { claimed: boolean; duplicateCount?: number };
+  /**
+   * Optional crash-atomic path: claim the primary and adjacent fingerprints and
+   * insert the event row in one transaction. The pipeline uses this when the
+   * store provides it, after reading the session to determine lateness.
+   */
+  claimEvent?(
+    event: AgentEvent,
+    fingerprints: EventFingerprints,
+    meta: { late: boolean },
     now: string,
   ): { claimed: boolean; duplicateCount?: number };
   recordEvent(

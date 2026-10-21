@@ -7,6 +7,7 @@
 
 import type { AgentEvent, ValidationIssue } from "@agent-attention/contract";
 import type {
+  EventFingerprints,
   PipelineDiagnostic,
   PipelineStore,
   SessionRecord,
@@ -21,6 +22,8 @@ export interface MemoryPipelineStoreOptions {
   onRecordEvent?: (event: AgentEvent) => void;
   onSaveSession?: (session: SessionRecord) => void;
   onClaimFingerprint?: (fingerprint: string) => void;
+  /** Exercise the crash-atomic claim+insert path used by real storage. */
+  atomicClaims?: boolean;
 }
 
 function sessionKey(adapterId: string, sessionId: string): string {
@@ -39,10 +42,39 @@ export class MemoryPipelineStore implements PipelineStore {
   onSaveSession?: (session: SessionRecord) => void;
   onClaimFingerprint?: (fingerprint: string) => void;
 
+  claimEvent?: (
+    event: AgentEvent,
+    fingerprints: EventFingerprints,
+    meta: { late: boolean },
+    now: string,
+  ) => { claimed: boolean; duplicateCount?: number };
+
   constructor(options: MemoryPipelineStoreOptions = {}) {
     this.onRecordEvent = options.onRecordEvent;
     this.onSaveSession = options.onSaveSession;
     this.onClaimFingerprint = options.onClaimFingerprint;
+
+    if (options.atomicClaims === true) {
+      this.claimEvent = (event, fingerprints, meta, now) => {
+        this.calls.push("claimEvent");
+        const primary = this.claimFingerprint(fingerprints.primary, event.eventId, now);
+        if (!primary.claimed) {
+          return primary;
+        }
+        if (fingerprints.adjacent !== undefined) {
+          const adjacent = this.claimFingerprint(fingerprints.adjacent, event.eventId, now);
+          if (!adjacent.claimed) {
+            return adjacent;
+          }
+        }
+        this.recordEvent(event, {
+          fingerprint: fingerprints.primary,
+          late: meta.late,
+          duplicate: false,
+        });
+        return { claimed: true };
+      };
+    }
   }
 
   claimFingerprint(

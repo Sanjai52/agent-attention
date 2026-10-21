@@ -476,39 +476,8 @@ function processValidEvent(
     };
   }
 
-  // Claim before any persistence or state mutation (PRD §14.2 step 2).
-  if (fingerprints !== null) {
-    const primary = deps.store.claimFingerprint(
-      fingerprints.primary,
-      event.eventId,
-      now,
-    );
-    if (!primary.claimed) {
-      return {
-        status: "duplicate",
-        planned: [],
-        timers: [],
-        diagnostics: [],
-      };
-    }
-
-    if (fingerprints.adjacent !== undefined) {
-      const adjacent = deps.store.claimFingerprint(
-        fingerprints.adjacent,
-        event.eventId,
-        now,
-      );
-      if (!adjacent.claimed) {
-        return {
-          status: "duplicate",
-          planned: [],
-          timers: [],
-          diagnostics: [],
-        };
-      }
-    }
-  }
-
+  // Read-only session lookup so lateness is known before the atomic claim. The
+  // claim itself still precedes every persistence and state mutation.
   let session = deps.store.loadSession(
     event.source.adapterId,
     event.session.sessionId,
@@ -523,8 +492,57 @@ function processValidEvent(
     session !== undefined &&
     (isLateEvent(event, undefined, session) || isOlderThanSession(session, event));
 
+  let eventRecorded = false;
+  // Claim before any persistence or state mutation (PRD §14.2 step 2). The
+  // concrete store can claim and insert in one transaction; a store that only
+  // exposes claimFingerprint keeps the two-call fallback.
+  if (fingerprints !== null) {
+    if (deps.store.claimEvent !== undefined) {
+      const claim = deps.store.claimEvent(event, fingerprints, { late }, now);
+      if (!claim.claimed) {
+        return {
+          status: "duplicate",
+          planned: [],
+          timers: [],
+          diagnostics: [],
+        };
+      }
+      eventRecorded = true;
+    } else {
+      const primary = deps.store.claimFingerprint(
+        fingerprints.primary,
+        event.eventId,
+        now,
+      );
+      if (!primary.claimed) {
+        return {
+          status: "duplicate",
+          planned: [],
+          timers: [],
+          diagnostics: [],
+        };
+      }
+
+      if (fingerprints.adjacent !== undefined) {
+        const adjacent = deps.store.claimFingerprint(
+          fingerprints.adjacent,
+          event.eventId,
+          now,
+        );
+        if (!adjacent.claimed) {
+          return {
+            status: "duplicate",
+            planned: [],
+            timers: [],
+            diagnostics: [],
+          };
+        }
+      }
+    }
+  }
+
   if (late) {
-    if (fingerprints !== null) {
+    if (!eventRecorded && fingerprints !== null) {
       deps.store.recordEvent(event, {
         fingerprint: fingerprints.primary,
         late: true,
@@ -558,7 +576,7 @@ function processValidEvent(
     };
   }
 
-  if (fingerprints !== null) {
+  if (!eventRecorded && fingerprints !== null) {
     deps.store.recordEvent(event, {
       fingerprint: fingerprints.primary,
       late: false,
