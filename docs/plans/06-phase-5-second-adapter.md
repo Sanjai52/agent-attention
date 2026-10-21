@@ -37,11 +37,7 @@
 - Consumes: Task 3.1 shape (copy the structure, not the code); Task 0.3/0.4 matrix row for `<host2>`.
 - Produces: `createAdapter(...)` and `capabilitiesFor(hostVersion)` exactly as Phase 3 Task 3.1.
 
-- [ ] **Step 1: Write failing tests** (capability schema valid; every authoritative entry cites a `sourceSignal`; unsupported types rejected by `assertEmittable`).
-- [ ] **Step 2: Run** `npx vitest run tests/unit/adapters/<host2>/capabilities.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement the skeleton and hook/plugin registration for this host's execution model.**
-- [ ] **Step 4: Run** test. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(adapter-<host2>): add skeleton and capability declaration`.
+- [x] **Steps 1–5 complete:** Claude Code capability and lifecycle skeleton is implemented and tested.
 
 ---
 
@@ -57,11 +53,7 @@
 - Produces: normalization for every declared event: session lifecycle, approval (+resolution if `supportsResolutionSignals`), blocking input (only if verified; else `unsupported` + `turn_ended` fallback), turn-end, completion (only authoritative), failure/cancel, subagents/task scope when declared.
 - Same hard rules as Phase 3: no free text or payloads (AC-F3-07), `inferred` confidence where declared inferred (AC-J), idle never completion (AC-F2-03).
 
-- [ ] **Step 1: Write failing fixture tests** mirroring Phase 3 Tasks 3.2–3.6, including a duplicate-hook-fire fixture (RF2) and a hostile-project-name fixture (RF1).
-- [ ] **Step 2: Run** `npx vitest run tests/unit/adapters/<host2>`. Expected: FAIL.
-- [ ] **Step 3: Implement normalization; declare unsupported anything the matrix did not verify.**
-- [ ] **Step 4: Run** tests. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(adapter-<host2>): map host signals`.
+- [x] **Steps 1–5 complete:** sanitized Claude Code fixture replay, hook normalization, duplicate suppression, hostile-name bounds, and capability gating pass.
 
 ---
 
@@ -73,11 +65,7 @@
 
 **Interfaces:** identical to Task 3.7.
 
-- [ ] **Step 1: Write failing tests (RF5):** the Phase 3 install and this install coexist in one config directory without interfering; installing `<host2>` does not modify `<host1>` entries; uninstalling `<host2>` leaves `<host1>` fully functional; backup/idempotence rules from 3.7.**
-- [ ] **Step 2: Run** `npx vitest run tests/unit/cli/install-<host2>.test.ts`. Expected: FAIL.
-- [ ] **Step 3: Implement.**
-- [ ] **Step 4: Run** test. Expected: PASS.
-- [ ] **Step 5: Commit** `feat(cli): add <host2> install and uninstall`.
+- [x] **Steps 1–5 complete:** Claude Code settings merge, backup, idempotence, preservation, uninstall, and CLI routing pass.
 
 ---
 
@@ -87,9 +75,9 @@
 - Create: `tests/live-smoke/<host2>.smoke.ts`
 - Modify: `docs/host-signal-matrix.md` (measured vs declared for `<host2>`)
 
-- [ ] **Step 1: Cover the same scenario list as Task 3.8** against a real `<host2>` session.
-- [ ] **Step 2: Record per-event detection and confidence; downgrade declarations for any mismatch (PRD §18.3).**
-- [ ] **Step 3: Commit** `docs: <host2> live smoke results`.
+- [ ] **Step 1: Run the interactive Claude Code capture.** The local runtime is 2.1.304 while the verified S1 evidence is 2.1.181; the manual harness and sanitized fixture are ready.
+- [x] **Step 2:** Capability boundaries and version mismatch are recorded in `docs/host-signal-matrix.md`; no unsupported live behavior is claimed.
+- [x] **Step 3:** Manual smoke harness and evidence documentation are committed. Fresh interactive capture remains a release-review prerequisite.
 
 ---
 
@@ -104,17 +92,13 @@
 - Produces: `adapterContractSuite(name: string, adapter: AgentAttentionAdapter, fixtures: FixtureStream[])` asserting: capability schema validity; no unsupported-type emission across all fixtures; confidence discipline; contract-valid events only; duplicate idempotence.
 - Core-leak check (RF9): a CI step `git diff --stat` review recorded as a PR checklist item — the plan requires a written statement in the PR body when `packages/core` changed: which contract-level fix, which PRD §24 entry.
 
-- [ ] **Step 1: Write the shared suite and run both adapters through it.**
-- [ ] **Step 2: Run** `npx vitest run tests/integration/contract/all-adapters.test.ts`. Expected: it fails until any per-adapter gaps are fixed.
-- [ ] **Step 3: Fix gaps inside the adapters, not the core. If a core change is unavoidable, record it in PRD §24 and re-run Phase 1 tests.**
-- [ ] **Step 4: Multi-agent proof:** integration test with both adapters' fixture streams interleaved → history separates agents, no cross-talk (PRD persona requirement).**
-- [ ] **Step 5: Commit** `test: add shared adapter contract suite`.
+- [x] **Steps 1–5 complete for the contract boundary:** both adapters pass capability, parse, unsupported-event, and interleaving/no-cross-talk checks without core changes.
 
 ---
 
 ### Task 5.6: Phase 5 exit verification
 
-- [ ] **Step 1: Run** `npm run ci`. Expected: all green.
-- [ ] **Step 2: Verify PRD M5 exit:** second adapter reuses the core without core changes beyond contract-level fixes (record the diff statement), and passes its supported-event tests.
-- [ ] **Step 3: Update** docs (`installation.md`, `troubleshooting.md`, `adapter-development.md`), master plan checkbox.
-- [ ] **Step 4: Commit** `docs: close phase 5 second adapter`.
+- [x] **Step 1:** Local `npm run ci` passes on the integrated branch.
+- [x] **Step 2:** The second adapter reuses the core and contract without shared-package changes; supported-event tests pass.
+- [x] **Step 3:** Installation, troubleshooting, adapter-development, host-matrix, and Phase 5 progress docs are updated.
+- [ ] **Step 4:** Final closure waits for the fresh interactive Claude Code capture, GitHub Actions on the Phase 5 branch, and explicit release-review approval.

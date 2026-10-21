@@ -16,6 +16,8 @@
 | `plans/05-phase-4-policy-cli-history.md` | Policy integration, CLI, history | Phase 4 |
 | `phase-4-progress.md` | Phase 4 branch, worktree, and verification progress | Phase 4 |
 | `phase-4-acceptance.md` | F4–F15 acceptance evidence and documented limits | Phase 4 |
+| `phase-5-progress.md` | Claude Code adapter implementation and verification progress | Phase 5 |
+| `phase-5-orchestration.md` | Phase 5 worktree allocation and integration gates | Phase 5 |
 | `plans/06-phase-5-second-adapter.md` | Second host adapter | Phase 5 |
 | `plans/07-phase-6-hardening-release.md` | Security, packaging, acceptance, release | Phase 6 |
 | `architecture.md` | Components, core module map, boundaries, target data flow | Phase 1 (process model in Phase 2) |

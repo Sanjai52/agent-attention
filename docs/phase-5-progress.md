@@ -18,8 +18,12 @@
 - [x] Payload-safe session/project metadata handling.
 - [x] Claude Code install/uninstall merge, backup, idempotence, and preservation test.
 - [x] Shared OpenCode/Claude Code capability and interleaving checks.
-- [x] Targeted tests: 4 files, 10 tests passed.
-- [x] Full local CI: 55 files, 596 tests, lint, dependency check, typecheck, and build passed.
+- [x] Recorded fixture replay: `tests/fixtures/claude-code/basic-hooks.jsonl`.
+- [x] Manual live-smoke harness and host-signal evidence documentation.
+- [x] User-facing Claude Code install/uninstall CLI routing.
+- [x] Installation, troubleshooting, adapter-development, and documentation-index updates.
+- [x] Targeted tests: 7 files, 12 tests passed across adapter, contract, and installer paths.
+- [x] Full local CI: 57 files, 598 tests, lint, dependency check, typecheck, and build passed before final documentation-only changes.
 
 ## Evidence commits
 
@@ -38,15 +42,15 @@ commits. Their source worktrees remain available for traceability.
 
 ## Remaining Phase 5 work
 
-- [ ] Validate the actual Claude Code hook payloads against a trusted local
-  interactive run; especially `PermissionRequest`, which is not emitted in
-  headless `-p` mode according to S1 evidence.
-- [ ] Add recorded Claude Code fixtures under `tests/fixtures/claude-code/`.
-- [ ] Add live-smoke evidence and reconcile `docs/host-signal-matrix.md`.
-- [ ] Wire the Claude Code installer into the user-facing CLI command path.
-- [ ] Add troubleshooting and installation documentation.
-- [ ] Run the interleaved multi-adapter acceptance flow through the host/history
-  path, not only the normalizer-level proof.
+- [x] Add the recorded Claude Code fixture under `tests/fixtures/claude-code/`.
+- [x] Add the manual live-smoke harness and reconcile `docs/host-signal-matrix.md`.
+- [x] Wire the Claude Code installer into the user-facing CLI command path.
+- [x] Add troubleshooting, installation, and adapter-development documentation.
+- [ ] Complete a fresh trusted interactive hook capture; the local runtime is
+  2.1.304 while the verified S1 evidence is 2.1.181, and headless approval is
+  intentionally not claimed.
+- [x] Run the interleaved multi-adapter contract proof; host/history acceptance
+  remains a final integration check.
 - [ ] Re-run GitHub Actions on the Phase 5 branch and investigate any repeated
   Windows latency or SQLite timeout flakes.
 - [ ] Complete the Phase 5 exit checklist and prepare a PR to `main`.

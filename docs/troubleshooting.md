@@ -6,9 +6,8 @@
 > receipt→dispatch p95 **3.4–4.2 ms** for 50 `agent.needs_input` events.
 > Target: p95 < 500 ms.
 
-Status: Phase 2 doctor glossary and host checks implemented; CLI rendering lands
-in Phase 4 Task 4.7, host-specific sections in Phases 3/5, and final polish in
-Phase 6 Task 6.6.
+Status: Phase 2 doctor glossary, Phase 4 CLI rendering, and Phase 3/5 host
+sections are implemented. Clean-profile release troubleshooting remains Phase 6.
 Source of truth: `PRD.md` §7.1, §17.5, F11-R1.
 
 ## Doctor glossary
@@ -34,7 +33,7 @@ speaks, or shows a toast.
 | `environment.wsl` / `.ssh` / `.container` | Detection from `WSL_DISTRO_NAME`/`/proc/version`, `SSH_CONNECTION`/`SSH_CLIENT`, and container sentinels | Any `true` means an unsupported environment (AC-F11-02, D-09). Alerts may not reach the desktop; detection never blocks the host. |
 | `adapters` | Per-adapter capability matrix (`AdapterCapabilities`) | `unsupported` events are not expected from that adapter; `inferred` warns that confidence and false-alert targets apply. |
 
-## Common situations (to be filled)
+## Common situations
 
 - No alerts at all: host not running, global mute, quiet hours, focus suppression, channel disabled
 - Alerts but no sound: audio device unavailable, sound file invalid, volume 0
@@ -46,7 +45,20 @@ speaks, or shows a toast.
 
 ## Host-specific notes
 
-[Phase 3 Task 3.8 / Phase 5 Task 5.6]
+### Claude Code
+
+- `PermissionRequest` is verified for interactive TUI sessions but is not
+  expected in headless `claude -p` mode; the adapter reports that capability
+  boundary rather than claiming approval coverage universally.
+- `Stop` maps to an inferred `turn_ended`, never `completed`.
+- `PostToolUse` can infer an approved resolution; denial has no reliable
+  resolution hook and remains unknown to the adapter.
+- `StopFailure` and `PostToolUseFailure` map to authoritative failure events.
+- If hooks appear to delay Claude Code, verify the installed command uses the
+  asynchronous hook configuration and that the shim has not been replaced by
+  a blocking wrapper.
+- Run the manual capture harness after a host upgrade:
+  `npx tsx tests/live-smoke/claude-code.smoke.ts`.
 
 ## Dogfood journal
 
