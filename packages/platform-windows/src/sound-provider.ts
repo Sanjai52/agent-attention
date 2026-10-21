@@ -1,9 +1,9 @@
 import { constants } from "node:fs";
 import { access, stat } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { createKoffiMciPlayer, type MciPlayer } from "./mci-player";
 import { runFixedScript, type RunFixedScript } from "./powershell";
+import { resolvePlatformResource } from "./resources";
 import type { ProviderResult, SoundProvider, SoundRequest } from "./provider-types";
 
 export const BUNDLED_SOUND_IDS = [
@@ -19,9 +19,7 @@ export type BundledSoundId = (typeof BUNDLED_SOUND_IDS)[number];
 const FALLBACK_SOUND_ID: BundledSoundId = "attention";
 const ALLOWED_EXTENSIONS = new Set([".wav", ".mp3"]);
 export const MAX_SOUND_FILE_BYTES = 5 * 1024 * 1024;
-export const DEFAULT_SOUNDS_DIR = fileURLToPath(
-  new URL("../assets/sounds/", import.meta.url),
-);
+export const DEFAULT_SOUNDS_DIR = resolvePlatformResource("assets/sounds");
 
 const BUNDLED = new Set<string>(BUNDLED_SOUND_IDS);
 

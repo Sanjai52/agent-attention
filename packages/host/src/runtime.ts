@@ -6,7 +6,7 @@
  * pipe before it migrates or writes the database.
  */
 
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,13 +61,30 @@ interface StoreFacade extends PipelineStore {
   recordDelivery(record: DeliveryRecord): void;
 }
 
+/**
+ * Resolve the checked-in Windows scripts/assets from both source execution and
+ * the bundled host. In source, runtime.ts lives under packages/host/src; in
+ * the bundle it lives under packages/host/dist, which changes the relative
+ * path by one directory.
+ */
+export function resolvePlatformRoot(moduleUrl: string = import.meta.url): string {
+  const moduleDir = fileURLToPath(new URL(".", moduleUrl));
+  const candidates = [
+    join(moduleDir, "..", "..", "platform-windows"),
+    join(moduleDir, "..", "..", "packages", "platform-windows"),
+  ];
+  return (
+    candidates.find((candidate) =>
+      existsSync(join(candidate, "scripts", "toast.ps1")),
+    ) ?? candidates[0]!
+  );
+}
+
 export function createDefaultRuntime(options: DefaultRuntimeOptions = {}): HostRuntime {
   const env = options.env ?? process.env;
   const dataDir = options.dataDir ?? defaultDataDir(env);
   const config = options.config ?? structuredClone(defaultConfig);
-  const platformRoot = fileURLToPath(
-    new URL("../../platform-windows/", import.meta.url),
-  );
+  const platformRoot = resolvePlatformRoot();
   const scriptsDir = options.scriptsDir ?? join(platformRoot, "scripts");
   const soundsDir = join(platformRoot, "assets", "sounds");
 
@@ -153,6 +170,10 @@ export function createDefaultRuntime(options: DefaultRuntimeOptions = {}): HostR
       return collectDoctorReport({
         config,
         store: storeFacade,
+        providers: {
+          voice: providers.voice,
+          desktop: providers.desktop,
+        },
         pipe: { name: defaultPipeName(env), reachable: true, pid: process.pid },
         platform: { os: process.platform },
       });

@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "@agent-attention/contract": "0.0.0",
+    "@agent-attention/adapter-claude-code": "0.0.0",
+    "@agent-attention/platform-windows": "0.0.0",
     "@agent-attention/shim": "0.0.0",
     "jsonc-parser": "^3.3.1"
   }

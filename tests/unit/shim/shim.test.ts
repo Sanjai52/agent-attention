@@ -307,6 +307,14 @@ describe("spawnHostDetached", () => {
     });
     expect(unrefMock).toHaveBeenCalledTimes(1);
   });
+
+  it("honors the explicit runtime override used by plugin hosts", () => {
+    spawnMock.mockReturnValueOnce({ unref: unrefMock });
+    spawnHostDetached({ entry: "C:\\host\\main.js", env: { AGENT_ATTENTION_NODE_EXECUTABLE: "node-custom.exe" } });
+
+    const [command] = spawnMock.mock.calls[0] as unknown as [string];
+    expect(command).toBe("node-custom.exe");
+  });
 });
 
 describe("runShim", () => {

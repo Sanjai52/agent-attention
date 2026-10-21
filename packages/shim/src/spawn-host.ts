@@ -23,6 +23,26 @@ export interface SpawnHostResult {
 }
 
 /**
+ * OpenCode plugins run under Bun, whose `process.execPath` is the OpenCode
+ * executable rather than a JavaScript runtime. Launching the Node host with
+ * that path makes OpenCode treat `main.js` as a working directory. Prefer an
+ * explicit override, then fall back to the Node executable on Windows/Bun.
+ */
+export function resolveHostRuntime(env: NodeJS.ProcessEnv = process.env): string {
+  const override = env.AGENT_ATTENTION_NODE_EXECUTABLE?.trim();
+  if (override !== undefined && override.length > 0) {
+    return override;
+  }
+
+  const executable = process.execPath.toLowerCase();
+  if (executable.endsWith("\\bun.exe") || executable.endsWith("/bun") || executable.endsWith("\\opencode.exe") || executable.endsWith("/opencode")) {
+    return process.platform === "win32" ? "node.exe" : "node";
+  }
+
+  return process.execPath;
+}
+
+/**
  * Locate the built host entry. `AGENT_ATTENTION_HOST_ENTRY` wins so adapters
  * and tests can point at a development or packaged entry explicitly.
  */
@@ -56,7 +76,7 @@ export function spawnHostDetached(options: SpawnHostOptions = {}): SpawnHostResu
     return { spawned: false };
   }
 
-  const child = spawn(process.execPath, [entry, ...(options.args ?? [])], {
+  const child = spawn(resolveHostRuntime(options.env), [entry, ...(options.args ?? [])], {
     detached: true,
     windowsHide: true,
     stdio: "ignore",

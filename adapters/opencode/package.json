@@ -15,9 +15,7 @@
   },
   "dependencies": {
     "@agent-attention/contract": "0.0.0",
-    "@agent-attention/shim": "0.0.0"
-  },
-  "devDependencies": {
+    "@agent-attention/shim": "0.0.0",
     "@opencode/plugin": "^2.0.32"
   }
 }

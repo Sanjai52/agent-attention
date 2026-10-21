@@ -6,9 +6,6 @@
  * stdout because the host may interpret it.
  */
 
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { runShimFromStdin, type RunShimOptions } from "./client";
 
 export * from "./client";
@@ -17,14 +14,4 @@ export * from "./spool";
 
 export async function main(options: RunShimOptions = {}): Promise<number> {
   return runShimFromStdin(options);
-}
-
-const entry = process.argv[1];
-const isDirectRun =
-  entry !== undefined && resolve(entry) === resolve(fileURLToPath(import.meta.url));
-
-if (isDirectRun) {
-  void main().then((code) => {
-    process.exitCode = code;
-  });
 }
