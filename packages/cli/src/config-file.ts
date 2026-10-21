@@ -61,7 +61,7 @@ export async function setConfigValue(
   value: unknown,
 ): Promise<ReadConfigResult> {
   const current = await readConfigFile(path);
-  const updated = structuredClone(current.config) as Record<string, unknown>;
+  const updated = structuredClone(current.config) as unknown as Record<string, unknown>;
   const segments = keyPath.split(".").filter(Boolean);
   let cursor: Record<string, unknown> = updated;
   for (const segment of segments.slice(0, -1)) {

@@ -14,6 +14,8 @@
 | `plans/03-phase-2-host-and-providers.md` | Notification Host, storage, shim, providers | Phase 2 |
 | `plans/04-phase-3-first-adapter.md` | First host adapter | Phase 3 |
 | `plans/05-phase-4-policy-cli-history.md` | Policy integration, CLI, history | Phase 4 |
+| `phase-4-progress.md` | Phase 4 branch, worktree, and verification progress | Phase 4 |
+| `phase-4-acceptance.md` | F4–F15 acceptance evidence and documented limits | Phase 4 |
 | `plans/06-phase-5-second-adapter.md` | Second host adapter | Phase 5 |
 | `plans/07-phase-6-hardening-release.md` | Security, packaging, acceptance, release | Phase 6 |
 | `architecture.md` | Components, core module map, boundaries, target data flow | Phase 1 (process model in Phase 2) |

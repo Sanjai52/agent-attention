@@ -2,6 +2,7 @@ import type { IpcRequestKind, RequestPayloads } from "@agent-attention/contract"
 import { createIpcClient, defaultIpcOptions } from "./ipc-client";
 import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
+import { runConfig } from "./commands/config";
 
 export interface RunCliOptions {
   io?: CliIo;
@@ -25,9 +26,19 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
     error(io, `Unknown command: ${command}\n${HELP}`);
     return 2;
   }
-  if (command === "install" || command === "uninstall" || command === "config") {
-    error(io, `${command} is not implemented in the CLI skeleton`);
-    return 1;
+  if (command === "config") {
+    try {
+      const result = await runConfig(argv.slice(1), options.env);
+      emit(result, { json, io });
+      return result && typeof result === "object" && "valid" in result && (result as { valid: boolean }).valid === false ? 4 : 0;
+    } catch (cause) {
+      error(io, cause instanceof Error ? cause.message : "configuration command failed");
+      return 4;
+    }
+  }
+  if (command === "install" || command === "uninstall") {
+    error(io, `${command} requires a host-specific installer command`);
+    return 2;
   }
 
   const client = createIpcClient(defaultIpcOptions(options.env));
@@ -56,4 +67,8 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
     error(io, "Notification Host is not running. Start the host and retry.");
     return 3;
   }
+}
+
+if (process.argv[1]?.endsWith("index.js") === true) {
+  void runCli(process.argv.slice(2)).then((code) => { process.exitCode = code; });
 }

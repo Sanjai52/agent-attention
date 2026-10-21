@@ -301,6 +301,9 @@ export async function runHost(
     });
   };
 
+  // The submit callback closes over the registry, which is initialized before
+  // the host accepts any requests.
+  // eslint-disable-next-line prefer-const
   let timers: TimerRegistry;
 
   const submitEvent = async (event: AgentEvent) => {

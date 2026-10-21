@@ -8,6 +8,6 @@ describe("status query", () => {
       openRequests: () => [{ adapterId: "opencode", sessionId: "session-123456789", requestId: "req-1", kind: "approval", openedAt: "2026-10-21T09:59:00.000Z", remindersSent: 0 }],
     }, "2026-10-21T10:01:00.000Z");
     expect(report.sessions[0]?.sessionIdShort).toBe("session-…789");
-    expect(report.sessions[0]?.pendingRequests[0]?.ageSeconds).toBe(60);
+    expect(report.sessions[0]?.pendingRequests[0]?.ageSeconds).toBe(120);
   });
 });
