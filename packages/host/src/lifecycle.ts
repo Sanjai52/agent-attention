@@ -16,28 +16,24 @@ import { join } from "node:path";
 
 import type {
   AgentAttentionConfig,
+  AgentEvent,
   HistoryFilters,
   PreviewRequest,
 } from "@agent-attention/contract";
 import {
+  RollingRateLimiter,
+  processEvent,
   reconcileAfterHostRestart,
   type Clock,
+  type GraceState,
   type PipelineStore,
   type SessionRecord,
 } from "@agent-attention/core";
 
 import type { ProviderSet } from "./connection";
-import {
-  PipeServerError,
-  createPipeServer,
-  defaultPipeName,
-  type PipeServer,
-} from "./pipe-server";
-import {
-  createTimerRegistry,
-  type HostTimerInstruction,
-  type TimerRegistry,
-} from "./timers";
+import { PipeServerError, createPipeServer, defaultPipeName, type PipeServer } from "./pipe-server";
+import { ingestSpool } from "./spool-ingest";
+import { createTimerRegistry, type HostTimerInstruction, type TimerRegistry } from "./timers";
 
 export interface SpoolIngestSummary {
   ingested: number;
@@ -191,6 +187,15 @@ function writeDiagnostic(message: string): void {
   }
 }
 
+/** Local wall-clock minutes (0–1439) for quiet hours (PRD §9.4). */
+function localMinutes(iso: string): number {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return 0;
+  }
+  return date.getHours() * 60 + date.getMinutes();
+}
+
 async function closeRuntime(runtime: HostRuntime): Promise<void> {
   try {
     await runtime.shutdown?.();
@@ -225,8 +230,7 @@ export async function runHost(
   }
 
   const args = parseArgs(argv);
-  const pipeName =
-    stringArg(args.get("pipe")) ?? runtime.pipeName ?? defaultPipeName();
+  const pipeName = stringArg(args.get("pipe")) ?? runtime.pipeName ?? defaultPipeName();
   const dataDir = stringArg(args.get("data-dir"));
   const spoolDir =
     dataDir === undefined
@@ -236,6 +240,25 @@ export async function runHost(
   const idleCheckIntervalMs = options.idleCheckIntervalMs ?? 30_000;
   const noIdleExit = options.noIdleExit === true || args.has("no-idle-exit");
   const noIngest = options.noIngest === true || args.has("no-ingest");
+
+  // One limiter and one grace map for every submit path: pipe connections and
+  // spool replay must not bypass each other's alert budget or pending turn-end
+  // state (PRD §9.4, §14.2).
+  const rateLimiter = new RollingRateLimiter(runtime.config.rateLimit.maxAlertsPerMinute);
+  const grace: GraceState = {
+    pending: new Map(),
+    graceMs: runtime.config.events.turnEnded.graceMs,
+  };
+  const quietHoursMinutes = (now: string): number => localMinutes(now);
+  const submitEvent = async (event: AgentEvent) =>
+    processEvent(event, {
+      store: runtime.store,
+      config: runtime.config,
+      clock: runtime.clock,
+      rateLimiter,
+      quietHoursMinutes,
+      grace,
+    });
 
   let readyForRequests = false;
   let lastActivityAt = runtime.clock.nowMs();
@@ -295,11 +318,7 @@ export async function runHost(
     if (
       timers
         .pending()
-        .some(
-          (timer) =>
-            timer.kind === "host_exit" &&
-            timer.sessionKey === HOST_TIMER_SESSION_KEY,
-        )
+        .some((timer) => timer.kind === "host_exit" && timer.sessionKey === HOST_TIMER_SESSION_KEY)
     ) {
       return;
     }
@@ -340,10 +359,11 @@ export async function runHost(
       config: runtime.config,
       providers: runtime.providers,
       clock: runtime.clock,
+      rateLimiter,
+      grace,
+      quietHoursMinutes,
       isReady: () => readyForRequests,
-      ...(runtime.hardenPipeAcl === undefined
-        ? {}
-        : { hardenPipeAcl: runtime.hardenPipeAcl }),
+      ...(runtime.hardenPipeAcl === undefined ? {} : { hardenPipeAcl: runtime.hardenPipeAcl }),
       ...(runtime.history === undefined ? {} : { history: runtime.history }),
       ...(runtime.preview === undefined ? {} : { preview: runtime.preview }),
       ...(runtime.mute === undefined ? {} : { mute: runtime.mute }),
@@ -371,8 +391,9 @@ export async function runHost(
 
     await runtime.migrate();
 
-    if (!noIngest && spoolDir !== undefined && runtime.ingestSpool !== undefined) {
-      await runtime.ingestSpool(spoolDir);
+    if (!noIngest && spoolDir !== undefined) {
+      const ingest = runtime.ingestSpool ?? ((dir: string) => ingestSpool(dir, submitEvent));
+      await ingest(spoolDir);
     }
 
     const sessions = runtime.listSessions?.() ?? [];
