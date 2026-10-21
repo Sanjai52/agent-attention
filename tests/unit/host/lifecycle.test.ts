@@ -59,7 +59,7 @@ function runtime(overrides: Partial<HostRuntime> & { sessions?: SessionRecord[] 
     store.saveSession(item);
   }
 
-  const testRuntime: TestRuntime = {
+  const testRuntime = {
     store,
     config: structuredClone(defaultConfig),
     providers: providers(),
@@ -79,9 +79,9 @@ function runtime(overrides: Partial<HostRuntime> & { sessions?: SessionRecord[] 
       calls.push("list-sessions");
       return sessions;
     },
-    ...overrides,
-  };
+  } as unknown as TestRuntime;
 
+  Object.assign(testRuntime, overrides);
   return testRuntime;
 }
 
@@ -144,7 +144,11 @@ describe("TimerRegistry", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(NOW));
     const fired: HostTimerInstruction[] = [];
-    const registry = createTimerRegistry({ onFire: (instruction) => fired.push(instruction) });
+    const registry = createTimerRegistry({
+      onFire: (instruction) => {
+        fired.push(instruction);
+      },
+    });
 
     registry.arm({
       kind: "grace",
@@ -165,7 +169,11 @@ describe("TimerRegistry", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(NOW));
     const fired: HostTimerInstruction[] = [];
-    const registry = createTimerRegistry({ onFire: (instruction) => fired.push(instruction) });
+    const registry = createTimerRegistry({
+      onFire: (instruction) => {
+        fired.push(instruction);
+      },
+    });
 
     registry.arm({ kind: "stale", sessionKey: "s", dueAt: "2026-10-21T10:00:01Z" });
     registry.arm({ kind: "stale", sessionKey: "s", dueAt: "2026-10-21T10:00:02Z" });
@@ -182,7 +190,11 @@ describe("TimerRegistry", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(NOW));
     const fired: HostTimerInstruction[] = [];
-    const registry = createTimerRegistry({ onFire: (instruction) => fired.push(instruction) });
+    const registry = createTimerRegistry({
+      onFire: (instruction) => {
+        fired.push(instruction);
+      },
+    });
 
     registry.arm({ kind: "reminder", sessionKey: "s", requestId: "r1", dueAt: "2026-10-21T10:00:01Z" });
     registry.arm({ kind: "stale", sessionKey: "s", dueAt: "2026-10-21T10:00:01Z" });
@@ -198,7 +210,11 @@ describe("TimerRegistry", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(NOW));
     const fired: HostTimerInstruction[] = [];
-    const registry = createTimerRegistry({ onFire: (instruction) => fired.push(instruction) });
+    const registry = createTimerRegistry({
+      onFire: (instruction) => {
+        fired.push(instruction);
+      },
+    });
 
     registry.arm({ kind: "grace", sessionKey: "a", dueAt: "2026-10-21T10:00:01Z" });
     registry.arm({ kind: "host_exit", sessionKey: "host", dueAt: "2026-10-21T10:01:00Z" });

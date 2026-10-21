@@ -149,7 +149,7 @@ describe.skipIf(!IS_WINDOWS)("single instance and restart", () => {
         sessionsFile,
       ],
       { stdio: ["ignore", "pipe", "pipe"], windowsHide: true },
-    ) as ChildProcessWithoutNullStreams;
+    ) as unknown as ChildProcessWithoutNullStreams;
 
     let childExited: Promise<void>;
     try {
