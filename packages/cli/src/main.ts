@@ -3,6 +3,7 @@ import { createIpcClient, defaultIpcOptions } from "./ipc-client";
 import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
 import { runConfig } from "./commands/config";
+import { defaultClaudeCodeSettingsPath, installClaudeCode, uninstallClaudeCode } from "./install/claude-code";
 
 export interface RunCliOptions {
   io?: CliIo;
@@ -12,6 +13,12 @@ export interface RunCliOptions {
 
 function has(argv: string[], flag: string): boolean {
   return argv.includes(flag);
+}
+
+function valueOf(argv: string[], flag: string): string | undefined {
+  const index = argv.indexOf(flag);
+  const value = index < 0 ? undefined : argv[index + 1];
+  return value?.trim() || undefined;
 }
 
 export async function runCli(argv: string[], options: RunCliOptions = {}): Promise<number> {
@@ -37,8 +44,27 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
     }
   }
   if (command === "install" || command === "uninstall") {
-    error(io, `${command} requires a host-specific installer command`);
-    return 2;
+    const host = valueOf(argv, "--host") ?? "claude-code";
+    if (host !== "claude-code") {
+      error(io, `Unsupported installer host: ${host}`);
+      return 2;
+    }
+    const settingsPath = valueOf(argv, "--settings") ?? defaultClaudeCodeSettingsPath(options.env);
+    const hookCommand = valueOf(argv, "--command");
+    if (hookCommand === undefined) {
+      error(io, `${command} requires --command for host ${host}`);
+      return 2;
+    }
+    try {
+      const report = command === "install"
+        ? await installClaudeCode({ settingsPath, hookCommand })
+        : await uninstallClaudeCode({ settingsPath, hookCommand });
+      emit(report, { json, io });
+      return 0;
+    } catch (cause) {
+      error(io, cause instanceof Error ? cause.message : `${command} failed`);
+      return 4;
+    }
   }
 
   const client = createIpcClient(defaultIpcOptions(options.env));

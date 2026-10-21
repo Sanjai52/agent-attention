@@ -74,3 +74,26 @@ permission-allow attempt did not produce a permission request because that
 specific model turn did not invoke a permissioned tool; approval support is
 therefore evidenced by the frozen real-host approval capture and its replay
 tests, not falsely claimed as a fresh live approval observation.
+
+## Claude Code Phase 5 evidence
+
+The local runtime reports Claude Code `2.1.306` on 2026-10-21 after an automatic
+update during the capture attempt. The adapter is version-gated against the S1
+evidence for `2.1.181`. An isolated interactive session captured
+`SessionStart`, `StopFailure`, and `SessionEnd`, but the assistant turn failed
+with `401 OAuth access token is invalid`; successful `Stop`, tool-use, and
+approval evidence is therefore not claimed. The
+manual harness is [`tests/live-smoke/claude-code.smoke.ts`](../tests/live-smoke/claude-code.smoke.ts).
+
+| Hook | Adapter mapping | Current evidence |
+|---|---|---|
+| `SessionStart` | `agent.started`, authoritative | S1 documentation and recorded sanitized fixture |
+| `PermissionRequest` | `agent.needs_approval`, authoritative | S1 TUI-only observation; headless `-p` gap remains |
+| `PostToolUse` | `agent.approval_resolved`, inferred approved | PRD §16.4 inference rule and fixture replay |
+| `Stop` | `agent.turn_ended`, inferred | S1 documentation and fixture replay |
+| `StopFailure` / `PostToolUseFailure` | `agent.failed`, authoritative | S1 documentation and fixture replay |
+| `SessionEnd` | `agent.session_ended`, authoritative | S1 documentation and fixture replay |
+
+No verified Claude Code completion signal is declared. `Stop` is never mapped
+to `agent.completed`, and no prompt/tool/model payload is copied into the
+shared event contract.

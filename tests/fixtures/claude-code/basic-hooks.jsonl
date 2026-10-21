@@ -1,0 +1,7 @@
+{"kind":"meta","name":"basic-hooks","host":"claude-code","recordedAt":"2026-10-21T10:00:00.000Z","hostVersion":"2.1.181","evidence":"sanitized S1 hook shape; payload fields intentionally omitted"}
+{"kind":"event","hookEventName":"SessionStart","sessionId":"claude-session-1","cwd":"C:\\work\\agent-attention","projectId":"project-1"}
+{"kind":"event","hookEventName":"PermissionRequest","sessionId":"claude-session-1","requestId":"permission-1"}
+{"kind":"event","hookEventName":"PostToolUse","sessionId":"claude-session-1","requestId":"permission-1","turnId":"turn-1"}
+{"kind":"event","hookEventName":"Stop","sessionId":"claude-session-1","turnId":"turn-1"}
+{"kind":"event","hookEventName":"StopFailure","sessionId":"claude-session-1","turnId":"turn-2","failureCode":"host_error"}
+{"kind":"event","hookEventName":"SessionEnd","sessionId":"claude-session-1"}

@@ -1,15 +1,22 @@
 # Installation Guide
 
-Status: scaffold. Completed in Phase 6 Task 6.6 from the worked 6.2 verification.
+Status: OpenCode and Claude Code local installation paths are available; clean
+profile and release packaging remain Phase 6 work.
 Source of truth: `PRD.md` §7.1, §18.4.
 
-## Sections (to be filled)
+## Supported local installation
 
-1. Requirements: Windows 10/11, Node version (from compatibility matrix), no admin rights
-2. Install an integration: `agent-attention install <host>`
-3. What install changes (host config entries, toast registration, config file creation)
-4. First-run defaults and how to configure (`config` commands, `config.json` location)
-5. Verify: `agent-attention doctor`
-6. Uninstall: `agent-attention uninstall <host>` and `--purge`
-7. Update procedure
-8. Compatibility matrix reference (`compatibility.md`)
+1. Requirements: Windows 10/11 and Node 24.20+, without administrator rights.
+2. Install Claude Code hooks:
+   `agent-attention install --host claude-code --command "agent-attention claude-hook"`.
+   Use `--settings <path>` for a temporary or alternate settings file.
+3. The installer merges asynchronous command hooks for the verified lifecycle
+   signals, backs up an existing settings file, and records an ownership marker.
+4. Repeating install is idempotent. Uninstall removes only the exact command
+   owned by Agent Attention and preserves user edits:
+   `agent-attention uninstall --host claude-code --command "agent-attention claude-hook"`.
+5. Verify the host and adapter matrix with `agent-attention doctor --json`.
+6. OpenCode installation remains available through its existing installer API;
+   host-specific CLI wiring is being expanded incrementally.
+7. Clean-profile install/uninstall, toast registration, packaging, and the final
+   compatibility matrix are Phase 6 release gates.
