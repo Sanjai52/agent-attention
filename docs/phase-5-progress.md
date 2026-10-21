@@ -47,8 +47,10 @@ commits. Their source worktrees remain available for traceability.
 - [x] Wire the Claude Code installer into the user-facing CLI command path.
 - [x] Add troubleshooting, installation, and adapter-development documentation.
 - [ ] Complete a fresh trusted interactive hook capture; the local runtime is
-  2.1.304 while the verified S1 evidence is 2.1.181, and headless approval is
-  intentionally not claimed.
+  2.1.306 while the verified S1 evidence is 2.1.181. An isolated session
+  captured `SessionStart`, `StopFailure`, and `SessionEnd`, but Claude returned
+  `401 OAuth access token is invalid` before a successful assistant turn;
+  `Stop`, tool-use, and approval evidence remain intentionally unclaimed.
 - [x] Run the interleaved multi-adapter contract proof and host/history
   acceptance through the IPC connection path.
 - [ ] Re-run GitHub Actions on the Phase 5 branch and investigate any repeated

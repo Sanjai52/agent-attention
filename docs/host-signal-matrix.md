@@ -77,9 +77,12 @@ tests, not falsely claimed as a fresh live approval observation.
 
 ## Claude Code Phase 5 evidence
 
-The local runtime reports Claude Code `2.1.304` on 2026-10-21. The adapter is
-version-gated against the S1 evidence for `2.1.181`; a fresh interactive
-capture is not claimed until hook payloads are recorded and sanitized. The
+The local runtime reports Claude Code `2.1.306` on 2026-10-21 after an automatic
+update during the capture attempt. The adapter is version-gated against the S1
+evidence for `2.1.181`. An isolated interactive session captured
+`SessionStart`, `StopFailure`, and `SessionEnd`, but the assistant turn failed
+with `401 OAuth access token is invalid`; successful `Stop`, tool-use, and
+approval evidence is therefore not claimed. The
 manual harness is [`tests/live-smoke/claude-code.smoke.ts`](../tests/live-smoke/claude-code.smoke.ts).
 
 | Hook | Adapter mapping | Current evidence |
