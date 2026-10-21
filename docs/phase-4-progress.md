@@ -28,11 +28,12 @@
 The task branches are integrated into this branch. The detailed acceptance
 mapping is in [`phase-4-acceptance.md`](phase-4-acceptance.md).
 
-## Closure gates remaining
+## Closure status
 
-- Review the documented doctor transport and focus session-window mapping
-  exceptions before final product sign-off.
-- Run the final clean-machine acceptance walk after those host-specific choices
-  are approved.
+The Phase 4 implementation and verification gates are complete for supported
+capabilities. Doctor transport is implemented and tested. F13 focus suppression
+is explicitly unsupported for this release because the event contract does not
+provide verified session-to-window mapping; the host does not guess or suppress
+alerts on that basis.
 
 No Phase 4 changes have been merged into `main`.

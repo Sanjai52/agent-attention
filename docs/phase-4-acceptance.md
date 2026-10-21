@@ -10,7 +10,7 @@ This matrix records the current Phase 4 integration evidence on
 | F7 | Status/history report models and storage query contracts | Verified; CLI host wiring remains bounded to supported IPC commands |
 | F8 | Quiet-hours, dedupe, rate-limit, and delivery suppression tests | Verified in core/integration suite |
 | F9/F10 | Failure and turn-end state/precedence tests | Verified in core suite |
-| F11 | CLI IPC client, JSON output, config commands, exit codes, and doctor report primitives | Verified for implemented commands; doctor host transport remains a follow-up wiring point |
+| F11 | CLI IPC client, JSON output, config commands, exit codes, and doctor report transport | Verified; doctor IPC routing has a dedicated host-connection test |
 | F12 | Audio queue, coalescing, and rate limiting tests | Verified in core/notification suite |
 | F13 | Focus provider capability and unsupported-environment reporting | **Unsupported for this release**; session-to-window host mapping is not available in the current event contract, so alerts are never suppressed by focus |
 | F14 | Reminder planning and timer arming | Verified in core; timer delivery callback remains host-runtime supplied |
@@ -20,8 +20,8 @@ This matrix records the current Phase 4 integration evidence on
 
 ## Verification
 
-- 49 test files passed.
-- 583 tests passed.
+- 51 test files passed.
+- 586 tests passed.
 - Workspace typechecks passed.
 - Lint passed.
 - Dependency check passed.
