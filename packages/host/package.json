@@ -21,6 +21,7 @@
     "@agent-attention/core": "0.0.0",
     "@agent-attention/storage": "0.0.0",
     "@agent-attention/notifications": "0.0.0",
-    "@agent-attention/platform-windows": "0.0.0"
+    "@agent-attention/platform-windows": "0.0.0",
+    "jsonc-parser": "^3.3.1"
   }
 }
