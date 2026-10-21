@@ -5,10 +5,11 @@ agent needs you — without constantly watching it.
 
 - **Source of truth:** [`PRD.md`](./PRD.md) (v2.3). If anything disagrees with the PRD, the PRD wins.
 - **Implementation plans:** [`docs/plans/`](./docs/plans/00-master-plan.md) — phase-by-phase, task-and-TDD granular.
-- **Status:** Phases 0–2 complete and merged: feasibility decisions, strict event
-  contract and pure core, headless host, SQLite storage, shim/spool, Windows
-  providers, and doctor/latency evidence. Phase 3 (OpenCode adapter) is next;
-  the user-facing CLI and real adapters are not implemented yet. Reports:
+- **Status:** Phases 0–5 are implemented and merged: feasibility decisions,
+  strict event contract and pure core, headless host, SQLite storage,
+  shim/spool, Windows providers, OpenCode and Claude Code adapters, installers,
+  CLI, policy, history, and shared adapter verification. Phase 6 hardening and
+  release remains. Reports:
   [`phase-0.md`](./docs/phase-0.md), [`phase-1.md`](./docs/phase-1.md),
   [`phase-2.md`](./docs/phase-2.md).
 

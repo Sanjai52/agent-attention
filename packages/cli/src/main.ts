@@ -4,6 +4,7 @@ import { error, emit, type CliIo } from "./output";
 import { HELP } from "./commands/help";
 import { runConfig } from "./commands/config";
 import { defaultClaudeCodeSettingsPath, installClaudeCode, uninstallClaudeCode } from "./install/claude-code";
+import { defaultOpenCodeConfigPath, installOpenCode, uninstallOpenCode } from "./install/opencode";
 
 export interface RunCliOptions {
   io?: CliIo;
@@ -45,20 +46,33 @@ export async function runCli(argv: string[], options: RunCliOptions = {}): Promi
   }
   if (command === "install" || command === "uninstall") {
     const host = valueOf(argv, "--host") ?? "claude-code";
-    if (host !== "claude-code") {
-      error(io, `Unsupported installer host: ${host}`);
-      return 2;
-    }
-    const settingsPath = valueOf(argv, "--settings") ?? defaultClaudeCodeSettingsPath(options.env);
-    const hookCommand = valueOf(argv, "--command");
-    if (hookCommand === undefined) {
-      error(io, `${command} requires --command for host ${host}`);
-      return 2;
-    }
     try {
-      const report = command === "install"
-        ? await installClaudeCode({ settingsPath, hookCommand })
-        : await uninstallClaudeCode({ settingsPath, hookCommand });
+      let report;
+      if (host === "claude-code") {
+        const settingsPath = valueOf(argv, "--settings") ?? defaultClaudeCodeSettingsPath(options.env);
+        const hookCommand = valueOf(argv, "--command");
+        if (hookCommand === undefined) {
+          error(io, `${command} requires --command for host ${host}`);
+          return 2;
+        }
+        report = command === "install"
+          ? await installClaudeCode({ settingsPath, hookCommand })
+          : await uninstallClaudeCode({ settingsPath, hookCommand });
+      } else if (host === "opencode") {
+        const hostConfigPath = valueOf(argv, "--config") ?? defaultOpenCodeConfigPath(options.env);
+        const stateDir = valueOf(argv, "--state-dir");
+        const pluginEntry = valueOf(argv, "--plugin");
+        if (command === "install" && pluginEntry === undefined) {
+          error(io, "install requires --plugin for host opencode");
+          return 2;
+        }
+        report = command === "install"
+          ? await installOpenCode({ hostConfigPath, pluginEntry: pluginEntry!, stateDir, dryRun: has(argv, "--dry-run") })
+          : await uninstallOpenCode({ hostConfigPath, stateDir, purge: has(argv, "--purge") });
+      } else {
+        error(io, `Unsupported installer host: ${host}`);
+        return 2;
+      }
       emit(report, { json, io });
       return 0;
     } catch (cause) {

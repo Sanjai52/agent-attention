@@ -1,9 +1,10 @@
 # Phase 5 — Second Adapter Progress
 
-**Status:** In progress on `phase-5-second-adapter`  
+**Status:** Implemented and merged into `main` through `afb7b59`
 **Base:** `main` at `8fcfb76`  
-**Target:** Claude Code 2.1.181  
-**Main merge:** Not authorized; no Phase 5 changes have been merged into `main`.
+**Target:** Claude Code 2.1.181 evidence baseline; local runtime 2.1.306
+**Release readiness:** Implementation and fixture verification are complete;
+fresh live capture and CI rerun remain external evidence gates before Phase 6.
 
 ## Completed slices
 
@@ -53,9 +54,10 @@ commits. Their source worktrees remain available for traceability.
   `Stop`, tool-use, and approval evidence remain intentionally unclaimed.
 - [x] Run the interleaved multi-adapter contract proof and host/history
   acceptance through the IPC connection path.
-- [ ] Re-run GitHub Actions on the Phase 5 branch and investigate any repeated
+- [ ] Re-run GitHub Actions on the merged Phase 5 commit and investigate any repeated
   Windows latency or SQLite timeout flakes.
-- [ ] Complete the Phase 5 exit checklist and prepare a PR to `main`.
+- [x] Complete the implementation exit checklist and merge Phase 5 to `main`.
+- [ ] Complete the external evidence follow-up: fresh live capture and GitHub Actions.
 
 ## Capability boundary
 
